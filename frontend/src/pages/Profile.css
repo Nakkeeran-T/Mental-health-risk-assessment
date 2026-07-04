@@ -1,0 +1,109 @@
+.profile-container {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.profile-header {
+  margin-bottom: 1rem;
+}
+
+.profile-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+}
+
+.profile-info-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.profile-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-primary) 0%, var(--bg-tertiary) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3rem;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+}
+
+.profile-details-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.profile-detail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 0.8rem;
+}
+
+.profile-detail-item:last-child {
+  border: none;
+}
+
+.profile-detail-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.profile-detail-val {
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.profile-detail-val.badge-role {
+  font-weight: 700;
+  background: rgba(0, 242, 254, 0.15);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.profile-edit-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.auth-success {
+  background: rgba(0, 230, 118, 0.1);
+  border: 1px solid rgba(0, 230, 118, 0.2);
+  color: var(--color-low);
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

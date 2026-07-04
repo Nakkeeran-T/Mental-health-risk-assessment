@@ -1,0 +1,220 @@
+.journal-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ── Header ── */
+.journal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.journal-header h1 {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #fff 40%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.journal-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-top: 0.3rem;
+}
+
+/* ── Form Card ── */
+.journal-form-card {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.journal-form-card h3 {
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.journal-meta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.journal-textarea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.select-dark {
+  background: var(--bg-tertiary) !important;
+  color: #fff;
+}
+
+/* ── Mood Tag Buttons in Form ── */
+.mood-tag-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.mood-tag-btn {
+  font-size: 1.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  outline: none;
+}
+
+.mood-tag-btn:hover {
+  transform: scale(1.15);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mood-tag-btn.selected {
+  background: rgba(138, 43, 226, 0.25);
+  border-color: var(--accent-primary);
+  transform: scale(1.2);
+}
+
+/* ── Filter Bar ── */
+.journal-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.filter-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  border-radius: 20px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  outline: none;
+}
+
+.filter-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.filter-chip.active {
+  background: rgba(138, 43, 226, 0.25);
+  border-color: var(--accent-primary);
+  color: #fff;
+}
+
+/* ── Entries Grid ── */
+.journal-entries-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.journal-entry-card {
+  padding: 1.5rem 2rem;
+  transition: var(--transition-smooth);
+}
+
+.journal-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.journal-entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.category-chip {
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  color: var(--accent-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mood-tag-display {
+  font-size: 1.2rem;
+}
+
+.journal-entry-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.journal-entry-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.6rem;
+}
+
+.journal-entry-content {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-height: 72px;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  white-space: pre-wrap;
+}
+
+.journal-entry-content.expanded {
+  max-height: 2000px;
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--accent-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.4rem;
+  padding: 0;
+  transition: var(--transition-smooth);
+}
+
+.read-more-btn:hover {
+  text-shadow: 0 0 8px var(--accent-secondary-glow);
+}
+
+.journal-entry-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .journal-meta-row {
+    grid-template-columns: 1fr;
+  }
+
+  .journal-header {
+    flex-direction: column;
+  }
+}
