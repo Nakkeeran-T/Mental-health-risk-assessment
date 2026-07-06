@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "DemoApplication",
+            "request": "launch",
+            "mainClass": "com.example.demo.DemoApplication",
+            "projectName": "demo",
+            "env": {
+                "DB_PASSWORD": "Nakkeeran@3110",
+                "JWT_SECRET": "dGhpc0lzQVNlY3VyZUtleUZvckpXVEF1dGhlbnRpY2F0aW9uMjAyNg=="
+            }
+        }
+    ]
+}
