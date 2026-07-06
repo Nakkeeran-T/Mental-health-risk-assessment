@@ -1,0 +1,141 @@
+.habits-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.habits-header {
+  margin-bottom: 1rem;
+}
+
+.habits-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.habits-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.8fr;
+  gap: 2rem;
+}
+
+.habits-form-card {
+  height: fit-content;
+}
+
+.habits-list-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.habits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.habit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.8rem;
+  transition: var(--transition-smooth);
+}
+
+.habit-item:hover {
+  transform: translateX(2px);
+}
+
+.habit-item.completed {
+  border-color: rgba(0, 230, 118, 0.25);
+  background: rgba(0, 230, 118, 0.03);
+}
+
+.habit-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.habit-check-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border-glass);
+  background: transparent;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: var(--transition-smooth);
+}
+
+.habit-check-btn:hover {
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 10px var(--accent-secondary-glow);
+}
+
+.habit-check-btn.checked {
+  background: var(--color-low);
+  border-color: var(--color-low);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+}
+
+.habit-info h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.habit-item.completed .habit-info h4 {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.habit-info p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+}
+
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.streak-badge-fire {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffa726;
+  background: rgba(255, 167, 38, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 167, 38, 0.2);
+}
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.5;
+  transition: var(--transition-smooth);
+}
+
+.btn-delete:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+@media (max-width: 768px) {
+  .habits-layout {
+    grid-template-columns: 1fr;
+  }
+}

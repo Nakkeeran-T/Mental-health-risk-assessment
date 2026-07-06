@@ -1,0 +1,122 @@
+.results-container {
+  max-width: 850px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.results-header-card {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: radial-gradient(circle at bottom, rgba(138, 43, 226, 0.15), transparent), var(--bg-glass);
+}
+
+.results-score-box {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.8rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  margin: 1.5rem auto;
+}
+
+.results-meta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 1rem;
+}
+
+/* Coping Recommendations List */
+.recs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.result-rec-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: var(--transition-smooth);
+}
+
+.result-rec-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent-secondary);
+}
+
+.result-rec-icon {
+  font-size: 1.8rem;
+  background: rgba(0, 242, 254, 0.1);
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+
+.result-rec-content h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.result-rec-content p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Answers Review Section */
+.answers-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.answer-review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+}
+
+.answer-review-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.answer-review-val {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+}
+
+/* Clinical Report Box */
+.report-text-area {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 1.5rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: #fff;
+  white-space: pre-wrap;
+  margin-top: 1rem;
+  line-height: 1.5;
+  max-height: 350px;
+  overflow-y: auto;
+}
