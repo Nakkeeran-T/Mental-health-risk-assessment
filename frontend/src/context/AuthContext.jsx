@@ -53,6 +53,12 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Registration failed:', error);
+      if (error.response?.data?.data) {
+        const valErrors = Object.entries(error.response.data.data)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join(', ');
+        return { success: false, error: `Validation failed: ${valErrors}` };
+      }
       const message = error.response?.data?.message || 'Registration failed. Email may already be in use.';
       return { success: false, error: message };
     }
