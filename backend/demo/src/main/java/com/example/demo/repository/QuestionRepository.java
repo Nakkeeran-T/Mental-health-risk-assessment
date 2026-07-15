@@ -14,5 +14,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByActiveTrue();
 
+    List<Question> findByActiveTrueOrderByIdAsc();
+
     List<Question> findByCategoryAndActiveTrue(QuestionCategory category);
 }

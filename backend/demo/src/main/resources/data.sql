@@ -58,3 +58,162 @@ SELECT 'In the last month, how often have you felt that things were going your w
 INSERT INTO questions (question_text, category, max_score, active, created_at)
 SELECT 'In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?', 'STRESS', 4, true, NOW() WHERE NOT EXISTS (SELECT 1 FROM questions WHERE question_text = 'In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?');
 
+-- ============================================================
+-- Step 3: Seed sample personalized variations for TWO master questions only
+-- Scoring still uses question_id from the master questions table.
+-- ============================================================
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADOLESCENT', 'Have you recently stopped enjoying things you usually like doing?', 1, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADOLESCENT'
+      AND v.variation_text = 'Have you recently stopped enjoying things you usually like doing?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADOLESCENT', 'Do your usual hobbies or activities feel less fun lately?', 2, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADOLESCENT'
+      AND v.variation_text = 'Do your usual hobbies or activities feel less fun lately?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'YOUNG_ADULT', 'Have you recently stopped enjoying activities you usually like?', 1, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'YOUNG_ADULT'
+      AND v.variation_text = 'Have you recently stopped enjoying activities you usually like?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'YOUNG_ADULT', 'Do your hobbies feel less interesting than before?', 2, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'YOUNG_ADULT'
+      AND v.variation_text = 'Do your hobbies feel less interesting than before?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADULT', 'Have you lost interest in activities that normally feel worthwhile?', 1, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADULT'
+      AND v.variation_text = 'Have you lost interest in activities that normally feel worthwhile?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'MIDDLE_AGED', 'Have your regular interests or routines felt less enjoyable recently?', 1, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'MIDDLE_AGED'
+      AND v.variation_text = 'Have your regular interests or routines felt less enjoyable recently?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'OLDER_ADULT', 'Have activities you usually value felt less enjoyable lately?', 1, true
+FROM questions q
+WHERE q.question_text = 'Little interest or pleasure in doing things'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'OLDER_ADULT'
+      AND v.variation_text = 'Have activities you usually value felt less enjoyable lately?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADOLESCENT', 'Have you been feeling sad, low, or hopeless recently?', 1, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADOLESCENT'
+      AND v.variation_text = 'Have you been feeling sad, low, or hopeless recently?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADOLESCENT', 'Have your moods felt heavy or hard to shake lately?', 2, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADOLESCENT'
+      AND v.variation_text = 'Have your moods felt heavy or hard to shake lately?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'YOUNG_ADULT', 'Have you been feeling down, depressed, or hopeless lately?', 1, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'YOUNG_ADULT'
+      AND v.variation_text = 'Have you been feeling down, depressed, or hopeless lately?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'YOUNG_ADULT', 'Have things felt emotionally heavy or discouraging recently?', 2, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'YOUNG_ADULT'
+      AND v.variation_text = 'Have things felt emotionally heavy or discouraging recently?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'ADULT', 'Have you recently felt low, depressed, or without hope?', 1, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'ADULT'
+      AND v.variation_text = 'Have you recently felt low, depressed, or without hope?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'MIDDLE_AGED', 'Have you been feeling persistently low or discouraged recently?', 1, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'MIDDLE_AGED'
+      AND v.variation_text = 'Have you been feeling persistently low or discouraged recently?'
+  );
+
+INSERT INTO question_variations (question_id, age_group, variation_text, version, active)
+SELECT q.id, 'OLDER_ADULT', 'Have you felt low, discouraged, or hopeless in recent days?', 1, true
+FROM questions q
+WHERE q.question_text = 'Feeling down, depressed, or hopeless'
+  AND NOT EXISTS (
+    SELECT 1 FROM question_variations v
+    WHERE v.question_id = q.id
+      AND v.age_group = 'OLDER_ADULT'
+      AND v.variation_text = 'Have you felt low, discouraged, or hopeless in recent days?'
+  );
+

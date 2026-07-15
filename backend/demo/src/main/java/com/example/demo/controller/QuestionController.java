@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.QuestionRequest;
 import com.example.demo.dto.response.ApiResponse;
+import com.example.demo.dto.response.PersonalizedQuestionResponse;
 import com.example.demo.dto.response.QuestionResponse;
 import com.example.demo.enums.QuestionCategory;
+import com.example.demo.service.QuestionPersonalizationService;
 import com.example.demo.service.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -12,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.List;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final QuestionPersonalizationService questionPersonalizationService;
 
     /**
      * POST /api/questions  (ADMIN only)
@@ -50,6 +54,19 @@ public class QuestionController {
     @Operation(summary = "Get all active questions")
     public ResponseEntity<ApiResponse<List<QuestionResponse>>> getActiveQuestions() {
         return ResponseEntity.ok(ApiResponse.success(questionService.getActiveQuestions()));
+    }
+
+    /**
+     * GET /api/questions/personalized
+     */
+    @GetMapping("/personalized")
+    @Operation(summary = "Get personalized active questions for the current user")
+    public ResponseEntity<ApiResponse<List<PersonalizedQuestionResponse>>> getPersonalizedQuestions(
+            Authentication authentication
+    ) {
+        List<PersonalizedQuestionResponse> response =
+                questionPersonalizationService.getPersonalizedQuestions(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**

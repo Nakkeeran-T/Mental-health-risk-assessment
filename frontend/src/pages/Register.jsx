@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DatePicker from '../components/DatePicker';
 import './Auth.css';
 
 const Register = () => {
@@ -100,14 +101,12 @@ const Register = () => {
 
           <div className="form-group">
             <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
-            <input
-              type="date"
+            <DatePicker
               id="dateOfBirth"
-              className="form-input"
               value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-              required
+              onChange={(val) => setDateOfBirth(val)}
               disabled={success}
+              placeholder="Select your date of birth"
             />
           </div>
 
@@ -139,9 +138,9 @@ const Register = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary auth-submit-btn" 
+          <button
+            type="submit"
+            className="btn-primary auth-submit-btn"
             disabled={submitting || success}
           >
             {submitting ? 'Registering...' : 'Register'}
