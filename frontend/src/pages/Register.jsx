@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import DatePicker from '../components/DatePicker';
 import './Auth.css';
 
 const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -26,7 +28,7 @@ const Register = () => {
     }
 
     setSubmitting(true);
-    const result = await register(firstName, lastName, email, password);
+    const result = await register(firstName, lastName, email, password, dateOfBirth);
     setSubmitting(false);
 
     if (result.success) {
@@ -98,6 +100,17 @@ const Register = () => {
           </div>
 
           <div className="form-group">
+            <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
+            <DatePicker
+              id="dateOfBirth"
+              value={dateOfBirth}
+              onChange={(val) => setDateOfBirth(val)}
+              disabled={success}
+              placeholder="Select your date of birth"
+            />
+          </div>
+
+          <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
             <input
               type="password"
@@ -125,9 +138,9 @@ const Register = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="btn-primary auth-submit-btn" 
+          <button
+            type="submit"
+            className="btn-primary auth-submit-btn"
             disabled={submitting || success}
           >
             {submitting ? 'Registering...' : 'Register'}

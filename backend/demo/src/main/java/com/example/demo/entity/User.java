@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.enums.AgeGroup;
 import com.example.demo.enums.Role;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -12,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +58,13 @@ public class User implements UserDetails {
     @Size(min = 6, message = "Password must be at least 6 characters")
     @Column(nullable = false)
     private String password;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "age_group", length = 20)
+    private AgeGroup ageGroup;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
+import { STORAGE_KEY as TOUR_KEY } from '../components/DashboardTour';
 import './Profile.css';
 
 const Profile = () => {
@@ -10,6 +12,25 @@ const Profile = () => {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
+
+  const formatDate = (value) => {
+    if (!value) return 'N/A';
+    return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatAgeGroup = (value) => {
+    if (!value) return 'N/A';
+    return value
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -72,8 +93,26 @@ const Profile = () => {
             </div>
             <div className="profile-details-list">
               <div className="profile-detail-item">
+                <span className="profile-detail-label">Name</span>
+                <span className="profile-detail-val">
+                  {[profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || 'N/A'}
+                </span>
+              </div>
+              <div className="profile-detail-item">
                 <span className="profile-detail-label">Email Address</span>
                 <span className="profile-detail-val">{profile?.email}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Date of Birth</span>
+                <span className="profile-detail-val">{formatDate(profile?.dateOfBirth)}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Age</span>
+                <span className="profile-detail-val">{profile?.age ?? 'N/A'}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Age Group</span>
+                <span className="profile-detail-val badge-role">{formatAgeGroup(profile?.ageGroup)}</span>
               </div>
               <div className="profile-detail-item">
                 <span className="profile-detail-label">Account Role</span>
@@ -91,7 +130,7 @@ const Profile = () => {
           {/* Edit Form */}
           <div className="glass-card profile-edit-card">
             <h3>Update Profile</h3>
-            
+
             {error && <div className="auth-error" style={{ margin: '1rem 0' }}>{error}</div>}
             {success && <div className="auth-success" style={{ margin: '1rem 0' }}>{success}</div>}
 
@@ -122,15 +161,33 @@ const Profile = () => {
                 />
               </div>
 
-              <button 
-                type="submit" 
-                className="btn-primary" 
+              <button
+                type="submit"
+                className="btn-primary"
                 disabled={updating}
                 style={{ width: '100%', justifyContent: 'center' }}
               >
                 {updating ? 'Saving Changes...' : 'Save Profile Details'}
               </button>
             </form>
+          </div>
+
+          {/* Replay Dashboard Tour */}
+          <div className="glass-card" style={{ textAlign: 'center', padding: '1.8rem' }}>
+            <h3 style={{ marginBottom: '0.4rem' }}>Need a refresher?</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '0.8rem' }}>
+              Replay the guided tour to revisit what each section of your dashboard does.
+            </p>
+            <button
+              className="tour-replay-btn"
+              onClick={() => {
+                localStorage.removeItem(TOUR_KEY);
+                navigate('/dashboard');
+              }}
+            >
+              <span className="replay-icon">🔄</span>
+              Show Dashboard Tour
+            </button>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, logout, user } = useAuth();
+  const { isAuthenticated, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,59 +25,62 @@ const Navbar = () => {
         <div className="navbar-links">
           {isAuthenticated ? (
             <>
-              <Link 
-                to="/dashboard" 
+              <Link
+                to="/dashboard"
                 className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
               >
                 Dashboard
               </Link>
-              <Link 
-                to="/assessment" 
+              <Link
+                to="/assessment"
                 className={`nav-link ${isActive('/assessment') ? 'active' : ''}`}
+                data-tour="nav-assess"
               >
                 Assess Risk
               </Link>
-              <Link 
-                to="/habits" 
+              <Link
+                to="/habits"
                 className={`nav-link ${isActive('/habits') ? 'active' : ''}`}
               >
                 Coping Habits
               </Link>
-              <Link 
-                to="/breathing" 
+              <Link
+                to="/breathing"
                 className={`nav-link ${isActive('/breathing') ? 'active' : ''}`}
               >
                 Breathing Tool
               </Link>
-              <Link 
-                to="/journal" 
+              <Link
+                to="/journal"
                 className={`nav-link ${isActive('/journal') ? 'active' : ''}`}
               >
                 Journal
               </Link>
-              <Link 
-                to="/history" 
+              <Link
+                to="/history"
                 className={`nav-link ${isActive('/history') ? 'active' : ''}`}
+                data-tour="nav-history"
               >
                 History
               </Link>
-              <Link 
-                to="/crisis" 
+              <Link
+                to="/crisis"
                 className={`nav-link crisis-nav-link ${isActive('/crisis') ? 'active' : ''}`}
               >
                 💙 Crisis Help
               </Link>
               {isAdmin() && (
-                <Link 
-                  to="/admin" 
+                <Link
+                  to="/admin"
                   className={`nav-link admin-btn ${isActive('/admin') ? 'active' : ''}`}
                 >
                   Admin Panel
                 </Link>
               )}
-              <Link 
-                to="/profile" 
+              <Link
+                to="/profile"
                 className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                data-tour="nav-profile"
               >
                 Profile
               </Link>
@@ -87,8 +90,8 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className={`nav-link ${isActive('/login') ? 'active' : ''}`}
               >
                 Login

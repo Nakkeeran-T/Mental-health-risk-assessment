@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
+import DashboardTour, { STORAGE_KEY as TOUR_KEY } from '../components/DashboardTour';
 import {
   ResponsiveContainer,
   LineChart,
@@ -43,6 +44,9 @@ const Dashboard = () => {
   const [moodNote, setMoodNote] = useState('');
   const [loggingMood, setLoggingMood] = useState(false);
   const [logSuccess, setLogSuccess] = useState('');
+
+  // Dashboard Tour state — show on first visit
+  const [showTour, setShowTour] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -88,6 +92,14 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Auto-show tour on first login (after data is loaded)
+  useEffect(() => {
+    if (!loading && !localStorage.getItem(TOUR_KEY)) {
+      const timer = setTimeout(() => setShowTour(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   const handleLogMood = async (e) => {
     e.preventDefault();
@@ -135,17 +147,17 @@ const Dashboard = () => {
   // Mood graph data
   const moodData = moodHistory.length > 0
     ? [...moodHistory].reverse().map(item => ({
-        date: new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        mood: item.moodScore
-      }))
+      date: new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      mood: item.moodScore
+    }))
     : chartData.map(item => {
-        let moodValue = 3;
-        if (item.risk === 'LOW') moodValue = 5;
-        else if (item.risk === 'MODERATE') moodValue = 4;
-        else if (item.risk === 'HIGH') moodValue = 2;
-        else if (item.risk === 'CRITICAL') moodValue = 1;
-        return { date: item.date, mood: moodValue };
-      });
+      let moodValue = 3;
+      if (item.risk === 'LOW') moodValue = 5;
+      else if (item.risk === 'MODERATE') moodValue = 4;
+      else if (item.risk === 'HIGH') moodValue = 2;
+      else if (item.risk === 'CRITICAL') moodValue = 1;
+      return { date: item.date, mood: moodValue };
+    });
 
   if (loading) {
     return (
@@ -158,10 +170,13 @@ const Dashboard = () => {
   return (
     <div className="main-content">
 
+      {/* Guided Dashboard Tour */}
+      <DashboardTour active={showTour} onComplete={() => setShowTour(false)} />
+
       {/* Welcome Banner */}
-      <div className="welcome-banner">
+      <div className="welcome-banner" data-tour="welcome">
         <div className="welcome-text">
-          <h1>Hello, {user?.email.split('@')[0]} 👋</h1>
+          <h1>Hello, {user?.firstName /*|| user?.email?.split('@')[0]*/ || 'User'} 👋</h1>
           <p>Welcome back to your mental wellness hub. Track, breathe, and grow.</p>
         </div>
         <Link to="/assessment" className="btn-primary">
@@ -184,7 +199,7 @@ const Dashboard = () => {
       )}
 
       {/* Quick Access Cards */}
-      <div className="quick-access-row">
+      <div className="quick-access-row" data-tour="quick-access">
         <div className="quick-card" onClick={() => navigate('/assessment')}>
           <span className="quick-icon">🧩</span>
           <span className="quick-label">Risk Assessment</span>
@@ -219,7 +234,7 @@ const Dashboard = () => {
         <div className="dashboard-main">
 
           {/* Mood Log Widget */}
-          <div className="glass-card mood-logging-widget">
+          <div className="glass-card mood-logging-widget" data-tour="mood-log">
             <h3 className="widget-title">How Are You Feeling Today?</h3>
 
             {logSuccess ? (
@@ -395,7 +410,7 @@ const Dashboard = () => {
         </div>
 
         {/* ── RIGHT / SIDEBAR COLUMN ── */}
-        <div className="dashboard-sidebar">
+        <div className="dashboard-sidebar" data-tour="sidebar">
 
           {/* Wellness Radar Chart */}
           {wellnessScore && (

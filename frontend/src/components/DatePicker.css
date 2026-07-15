@@ -1,0 +1,252 @@
+/* ═══════════════════════════════════════════════════════
+   DatePicker — Custom Calendar (Dark Glassmorphism)
+   ═══════════════════════════════════════════════════════ */
+
+.dp-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* ── Trigger button (looks like the form-input) ── */
+.dp-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+}
+
+.dp-trigger-active {
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.dp-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.dp-value {
+    color: #fff;
+}
+
+.dp-placeholder {
+    color: var(--text-muted);
+}
+
+.dp-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
+.dp-trigger:hover .dp-icon,
+.dp-trigger-active .dp-icon {
+    color: var(--accent-secondary);
+}
+
+/* ── Dropdown ── */
+.dp-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 320px;
+    z-index: 1000;
+    padding: 1rem;
+    animation: dpSlideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dp-dropdown:hover {
+    transform: none;
+    /* disable glass-card hover lift */
+}
+
+@keyframes dpSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ── Header (Month/Year + nav arrows) ── */
+.dp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.dp-nav-btn {
+    background: none;
+    border: 1px solid var(--border-glass);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.dp-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--text-muted);
+    color: #fff;
+}
+
+.dp-header-label {
+    background: none;
+    border: none;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    transition: var(--transition-smooth);
+}
+
+.dp-header-label:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--accent-secondary);
+}
+
+/* ── Day names row ── */
+.dp-day-names {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    margin-bottom: 0.4rem;
+}
+
+.dp-day-names span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0;
+}
+
+/* ── Grids ── */
+.dp-grid {
+    display: grid;
+    gap: 3px;
+}
+
+.dp-day-grid {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.dp-month-grid,
+.dp-year-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+/* ── Cells ── */
+.dp-cell {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.45rem 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.dp-cell:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border-color: var(--border-glass);
+}
+
+.dp-cell-lg {
+    padding: 0.65rem 0.4rem;
+    font-size: 0.88rem;
+}
+
+.dp-cell-outside {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.dp-cell-today {
+    border-color: var(--accent-primary) !important;
+    color: var(--accent-secondary);
+    font-weight: 700;
+}
+
+.dp-cell-selected {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.35), rgba(0, 242, 254, 0.18)) !important;
+    border-color: var(--accent-secondary) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(0, 242, 254, 0.15);
+}
+
+.dp-cell-disabled,
+.dp-cell:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+/* ── Footer (Today / Clear) ── */
+.dp-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dp-today-btn,
+.dp-clear-btn {
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    transition: var(--transition-smooth);
+}
+
+.dp-today-btn {
+    color: var(--accent-secondary);
+}
+
+.dp-today-btn:hover {
+    background: rgba(0, 242, 254, 0.1);
+}
+
+.dp-clear-btn {
+    color: var(--text-muted);
+}
+
+.dp-clear-btn:hover {
+    color: var(--color-critical);
+    background: rgba(255, 23, 68, 0.08);
+}
+
+/* ── Responsive ── */
+@media (max-width: 400px) {
+    .dp-dropdown {
+        width: 100%;
+        min-width: 280px;
+    }
+}
