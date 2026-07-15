@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }) => {
       // Let's assume standard response wrapper ApiResponse { success, message, data }
       const resData = response.data.data || response.data;
       
-      const { token: jwtToken, role } = resData;
-      const userData = { email, role };
+      const { token: jwtToken, role, firstName, userId, dateOfBirth, ageGroup } = resData;
+      const userData = { email: resData.email || email, role, firstName, userId, dateOfBirth, ageGroup };
 
       localStorage.setItem('token', jwtToken);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -47,12 +47,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (firstName, lastName, email, password) => {
+  const register = async (firstName, lastName, email, password, dateOfBirth) => {
     try {
-      await api.post('/auth/register', { firstName, lastName, email, password });
+      await api.post('/auth/register', { firstName, lastName, email, password, dateOfBirth });
       return { success: true };
     } catch (error) {
       console.error('Registration failed:', error);
+      if (!error.response) {
+        return { success: false, error: 'Registration service is unavailable. Please start the backend server and try again.' };
+      }
       if (error.response?.data?.data) {
         const valErrors = Object.entries(error.response.data.data)
           .map(([field, msg]) => `${field}: ${msg}`)

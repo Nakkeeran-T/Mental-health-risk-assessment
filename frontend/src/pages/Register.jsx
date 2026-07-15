@@ -7,6 +7,7 @@ const Register = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -26,7 +27,7 @@ const Register = () => {
     }
 
     setSubmitting(true);
-    const result = await register(firstName, lastName, email, password);
+    const result = await register(firstName, lastName, email, password, dateOfBirth);
     setSubmitting(false);
 
     if (result.success) {
@@ -92,6 +93,19 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
+              required
+              disabled={success}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="dateOfBirth">Date of Birth</label>
+            <input
+              type="date"
+              id="dateOfBirth"
+              className="form-input"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
               required
               disabled={success}
             />

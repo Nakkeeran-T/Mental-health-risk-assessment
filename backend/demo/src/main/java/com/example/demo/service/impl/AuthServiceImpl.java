@@ -4,11 +4,15 @@ import com.example.demo.dto.request.LoginRequest;
 import com.example.demo.dto.request.RegisterRequest;
 import com.example.demo.dto.response.AuthResponse;
 import com.example.demo.entity.User;
+import com.example.demo.enums.AgeGroup;
 import com.example.demo.enums.Role;
+import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.EmailAlreadyExistsException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtUtils;
 import com.example.demo.service.AuthService;
+import com.example.demo.util.AgeCalculator;
+import com.example.demo.util.AgeGroupUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,11 +37,21 @@ public class AuthServiceImpl implements AuthService {
             throw new EmailAlreadyExistsException(request.getEmail());
         }
 
+        int age = AgeCalculator.calculateAge(request.getDateOfBirth());
+        AgeGroup ageGroup;
+        try {
+            ageGroup = AgeGroupUtils.determineAgeGroup(age);
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException(ex.getMessage());
+        }
+
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .dateOfBirth(request.getDateOfBirth())
+                .ageGroup(ageGroup)
                 .role(Role.USER)
                 .enabled(true)
                 .build();
@@ -45,13 +59,7 @@ public class AuthServiceImpl implements AuthService {
         User savedUser = userRepository.save(user);
         String token = jwtUtils.generateToken(savedUser);
 
-        return AuthResponse.of(
-                token,
-                savedUser.getId(),
-                savedUser.getEmail(),
-                savedUser.getFirstName(),
-                savedUser.getRole().name()
-        );
+        return AuthResponse.of(token, savedUser);
     }
 
     @Override
@@ -63,12 +71,6 @@ public class AuthServiceImpl implements AuthService {
         User user = (User) authentication.getPrincipal();
         String token = jwtUtils.generateToken(user);
 
-        return AuthResponse.of(
-                token,
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getRole().name()
-        );
+        return AuthResponse.of(token, user);
     }
 }

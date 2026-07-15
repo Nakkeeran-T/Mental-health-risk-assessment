@@ -11,6 +11,24 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  const formatDate = (value) => {
+    if (!value) return 'N/A';
+    return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const formatAgeGroup = (value) => {
+    if (!value) return 'N/A';
+    return value
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  };
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -72,8 +90,26 @@ const Profile = () => {
             </div>
             <div className="profile-details-list">
               <div className="profile-detail-item">
+                <span className="profile-detail-label">Name</span>
+                <span className="profile-detail-val">
+                  {[profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || 'N/A'}
+                </span>
+              </div>
+              <div className="profile-detail-item">
                 <span className="profile-detail-label">Email Address</span>
                 <span className="profile-detail-val">{profile?.email}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Date of Birth</span>
+                <span className="profile-detail-val">{formatDate(profile?.dateOfBirth)}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Age</span>
+                <span className="profile-detail-val">{profile?.age ?? 'N/A'}</span>
+              </div>
+              <div className="profile-detail-item">
+                <span className="profile-detail-label">Age Group</span>
+                <span className="profile-detail-val badge-role">{formatAgeGroup(profile?.ageGroup)}</span>
               </div>
               <div className="profile-detail-item">
                 <span className="profile-detail-label">Account Role</span>
