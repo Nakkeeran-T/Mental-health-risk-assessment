@@ -176,7 +176,7 @@ const Dashboard = () => {
       {/* Welcome Banner */}
       <div className="welcome-banner" data-tour="welcome">
         <div className="welcome-text">
-          <h1>Hello, {user?.email.split('@')[0]} 👋</h1>
+          <h1>Hello, {user?.firstName /*|| user?.email?.split('@')[0]*/ || 'User'} 👋</h1>
           <p>Welcome back to your mental wellness hub. Track, breathe, and grow.</p>
         </div>
         <Link to="/assessment" className="btn-primary">
