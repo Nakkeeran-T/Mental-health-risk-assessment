@@ -31,13 +31,6 @@ public class QuestionController {
 
     /**
      * POST /api/questions  (ADMIN only)
-     *
-     * Request JSON:
-     * {
-     *   "questionText": "How often do you feel anxious?",
-     *   "category": "ANXIETY",
-     *   "maxScore": 5
-     * }
      */
     @PostMapping
     @Operation(summary = "Create a new question (Admin only)")

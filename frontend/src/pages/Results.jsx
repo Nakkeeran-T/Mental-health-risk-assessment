@@ -64,6 +64,16 @@ const Results = () => {
     }
   };
 
+  const getEmotionEmoji = (emotion) => {
+    const map = { joy: '😊', optimism: '🌟', sadness: '😔', anger: '😠', neutral: '😐' };
+    return map[emotion?.toLowerCase()] || '🧠';
+  };
+
+  const getEmotionColor = (emotion) => {
+    const map = { joy: '#00f2fe', optimism: '#f9d71c', sadness: '#a78bfa', anger: '#f87171', neutral: 'var(--text-secondary)' };
+    return map[emotion?.toLowerCase()] || 'var(--text-secondary)';
+  };
+
   if (loading) {
     return <div className="main-content" style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem' }}>Loading assessment results...</div>;
   }
@@ -86,20 +96,69 @@ const Results = () => {
         {/* Header Summary */}
         <div className="glass-card results-header-card">
           <h2>Assessment Completed</h2>
+
+          {/* Source Tag */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: '0.75rem', padding: '0.25rem 0.75rem',
+              borderRadius: '999px', fontWeight: 600, letterSpacing: '0.05em',
+              background: assessment.source === 'AI_CHAT' ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)',
+              color: assessment.source === 'AI_CHAT' ? '#a5b4fc' : '#6ee7b7',
+              border: `1px solid ${assessment.source === 'AI_CHAT' ? '#6366f130' : '#10b98130'}`
+            }}>
+              {assessment.source === 'AI_CHAT' ? '🤖 AI Chat Assessment' : '📋 Manual Assessment'}
+            </span>
+          </div>
+
           <div className="results-score-box" style={{ color: getRiskColor(assessment.riskLevel), border: `2px solid ${getRiskColor(assessment.riskLevel)}` }}>
             {assessment.totalScore}
           </div>
           <span className="risk-badge" style={{
-            fontSize: '1.1rem',
-            padding: '0.6rem 1.5rem',
+            fontSize: '1.1rem', padding: '0.6rem 1.5rem',
             color: getRiskColor(assessment.riskLevel),
             backgroundColor: `${getRiskColor(assessment.riskLevel)}15`,
             borderColor: `${getRiskColor(assessment.riskLevel)}30`,
-            borderStyle: 'solid',
-            borderWidth: '1px'
+            borderStyle: 'solid', borderWidth: '1px'
           }}>
             {assessment.riskLevel} Risk
           </span>
+
+          {/* ML Confidence Score */}
+          {assessment.mlRiskConfidence != null && (
+            <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>🧠 XGBoost confidence:</span>
+              <div style={{ position: 'relative', width: 140, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
+                <div style={{
+                  width: `${(assessment.mlRiskConfidence * 100).toFixed(0)}%`,
+                  height: '100%', borderRadius: 999,
+                  background: `linear-gradient(90deg, ${getRiskColor(assessment.riskLevel)}, ${getRiskColor(assessment.riskLevel)}aa)`
+                }} />
+              </div>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: getRiskColor(assessment.riskLevel) }}>
+                {(assessment.mlRiskConfidence * 100).toFixed(1)}%
+              </span>
+            </div>
+          )}
+          {assessment.mlRiskConfidence == null && (
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              ⚡ Rule-based scoring (ML service offline)
+            </p>
+          )}
+
+          {/* Detected Emotion (AI_CHAT only) */}
+          {assessment.mlEmotion && (
+            <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
+              <span style={{
+                padding: '0.35rem 1rem', borderRadius: 999, fontSize: '0.85rem', fontWeight: 600,
+                background: `${getEmotionColor(assessment.mlEmotion)}15`,
+                color: getEmotionColor(assessment.mlEmotion),
+                border: `1px solid ${getEmotionColor(assessment.mlEmotion)}30`
+              }}>
+                {getEmotionEmoji(assessment.mlEmotion)} Detected emotion: {assessment.mlEmotion}
+              </span>
+            </div>
+          )}
+
           <p className="results-meta">
             Taken on {new Date(assessment.completedAt).toLocaleString()} | Status: {assessment.status}
           </p>

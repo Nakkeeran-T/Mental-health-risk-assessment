@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.enums.AssessmentSource;
 import com.example.demo.enums.AssessmentStatus;
 import com.example.demo.enums.RiskLevel;
 import jakarta.persistence.*;
@@ -57,6 +58,30 @@ public class Assessment {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    /**
+     * How this assessment was generated.
+     * MANUAL  = user completed the PHQ-9/GAD-7/Stress questionnaire.
+     * AI_CHAT = derived from an AI chatbot conversation session.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", length = 10)
+    @Builder.Default
+    private AssessmentSource source = AssessmentSource.MANUAL;
+
+    /**
+     * Confidence score returned by the XGBoost ML risk classifier (0.0–1.0).
+     * Null when ML service is unavailable and rule-based fallback was used.
+     */
+    @Column(name = "ml_risk_confidence")
+    private Double mlRiskConfidence;
+
+    /**
+     * Dominant emotion detected by NLP model from chat conversation text.
+     * Null for manual (questionnaire) assessments.
+     */
+    @Column(name = "ml_emotion", length = 30)
+    private String mlEmotion;
 
     // ── Relationships ──────────────────────────────────────────
 

@@ -47,6 +47,19 @@ public class JournalEntry {
     @Column(length = 50)
     private String category;
 
+    /**
+     * ML-detected dominant emotion via NLP (joy, sadness, anger, optimism, neutral).
+     * Populated asynchronously after journal entry is saved.
+     */
+    @Column(name = "detected_emotion", length = 30)
+    private String detectedEmotion;
+
+    /**
+     * Confidence score for the detected emotion (0.0–1.0).
+     */
+    @Column(name = "emotion_confidence")
+    private Double emotionConfidence;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

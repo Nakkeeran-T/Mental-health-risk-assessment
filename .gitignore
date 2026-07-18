@@ -47,3 +47,15 @@ frontend/build/
 ### Local env files (DO NOT COMMIT) ###
 .env
 .env.*
+
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+

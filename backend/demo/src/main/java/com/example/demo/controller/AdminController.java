@@ -53,18 +53,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(assessmentService.getAllAssessments()));
     }
 
-    /**
-     * GET /api/admin/stats
-     *
-     * Response JSON:
-     * {
-     *   "success": true,
-     *   "data": {
-     *     "totalUsers": 42,
-     *     "totalAssessments": 128
-     *   }
-     * }
-     */
+    /** GET /api/admin/stats */
     @GetMapping("/stats")
     @Operation(summary = "Get platform statistics (Admin only)")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStats() {
