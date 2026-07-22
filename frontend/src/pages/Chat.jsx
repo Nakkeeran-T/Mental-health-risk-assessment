@@ -13,7 +13,6 @@ const getBarClass = (value, max) => {
 };
 
 const invertBarClass = (value, max) => {
-  // For positive dimensions (sleep, appetite, social), invert: high = good
   const pct = (value / max) * 100;
   if (pct >= 65) return 'good';
   if (pct >= 35) return 'warning';
@@ -21,7 +20,11 @@ const invertBarClass = (value, max) => {
 };
 
 const formatTime = (date) => {
-  return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit' }).format(date);
+  try {
+    return new Intl.DateTimeFormat('en', { hour: '2-digit', minute: '2-digit' }).format(date);
+  } catch (e) {
+    return '';
+  }
 };
 
 // ── Sub-components ────────────────────────────────────────────────────
@@ -74,6 +77,67 @@ const CrisisBanner = () => (
   </div>
 );
 
+const ShareModal = ({ transcript, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(transcript);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const element = document.createElement("a");
+    const file = new Blob([transcript], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = `MindEase-Chat-Transcript-${Date.now()}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  return (
+    <div className="session-complete-overlay">
+      <div className="session-complete-card" style={{ maxWidth: '560px', textAlign: 'left' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 className="session-complete-title" style={{ margin: 0 }}>🔗 Share / Export Transcript</h2>
+          <button className="new-chat-btn" onClick={onClose} style={{ padding: '0.2rem 0.6rem' }}>✕</button>
+        </div>
+        <p className="session-complete-subtitle" style={{ marginBottom: '1rem' }}>
+          Formatted conversation transcript ready to copy or download.
+        </p>
+
+        <textarea
+          readOnly
+          value={transcript}
+          rows={10}
+          className="chat-textarea"
+          style={{
+            width: '100%',
+            background: 'rgba(0,0,0,0.3)',
+            padding: '0.8rem',
+            borderRadius: '12px',
+            border: '1px solid var(--border-glass)',
+            fontSize: '0.8rem',
+            fontFamily: 'monospace',
+            marginBottom: '1.2rem',
+            color: 'var(--text-primary)',
+          }}
+        />
+
+        <div className="session-complete-actions">
+          <button className="btn-secondary" onClick={handleDownload}>
+            💾 Download .TXT
+          </button>
+          <button className="btn-primary" onClick={handleCopy}>
+            {copied ? '✅ Copied to Clipboard!' : '📋 Copy Transcript'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SessionCompleteModal = ({ assessment, onNewChat }) => {
   const navigate = useNavigate();
   const riskLevel = assessment?.riskLevel ?? 'MODERATE';
@@ -115,10 +179,7 @@ const SessionCompleteModal = ({ assessment, onNewChat }) => {
         </div>
 
         <div className="session-complete-actions">
-          <button
-            className="btn-secondary"
-            onClick={onNewChat}
-          >
+          <button className="btn-secondary" onClick={onNewChat}>
             New Chat
           </button>
           {assessment?.id && (
@@ -139,6 +200,8 @@ const SessionCompleteModal = ({ assessment, onNewChat }) => {
 
 const ChatUI = () => {
   const {
+    sessionId,
+    sessions,
     messages,
     signals,
     isTyping,
@@ -149,11 +212,26 @@ const ChatUI = () => {
     sendMessage,
     completeSession,
     resetSession,
+    loadSession,
+    deleteSession,
+    archiveSession,
+    exportSession,
   } = useChatContext();
 
   const [input, setInput] = useState('');
+  const [activeTab, setActiveTab] = useState('ACTIVE');
+  const [shareTranscript, setShareTranscript] = useState(null);
+  const [openMenuSessionId, setOpenMenuSessionId] = useState(null);
+
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+
+  // Close 3-dots menu on click outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenMenuSessionId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -178,11 +256,20 @@ const ChatUI = () => {
 
   const handleInput = (e) => {
     setInput(e.target.value);
-    // Auto-resize textarea
     const ta = e.target;
     ta.style.height = 'auto';
     ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
   };
+
+  const handleOpenShare = async () => {
+    const text = await exportSession(sessionId);
+    setShareTranscript(text);
+  };
+
+  const filteredSessions = sessions.filter((s) => {
+    if (activeTab === 'ARCHIVED') return s.status === 'ARCHIVED';
+    return s.status !== 'ARCHIVED';
+  });
 
   const turnsCompleted = signals?.turnsCompleted ?? 0;
   const progressPct = Math.min(100, Math.round((turnsCompleted / 8) * 100));
@@ -199,7 +286,99 @@ const ChatUI = () => {
           </div>
         </div>
 
+        <button className="new-chat-btn" style={{ width: '100%', justifyContent: 'center' }} onClick={resetSession}>
+          + New Chat
+        </button>
+
         <div className="sidebar-divider" />
+
+        {/* Saved Chat History Tabs */}
+        <div className="signals-panel">
+          <div className="history-tab-header">
+            <button
+              className={`history-tab-btn ${activeTab === 'ACTIVE' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ACTIVE')}
+            >
+              💬 Active
+            </button>
+            <button
+              className={`history-tab-btn ${activeTab === 'ARCHIVED' ? 'active' : ''}`}
+              onClick={() => setActiveTab('ARCHIVED')}
+            >
+              📦 Archived
+            </button>
+          </div>
+
+          <div className="history-list">
+            {filteredSessions.length === 0 ? (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.4rem 0' }}>
+                No {activeTab.toLowerCase()} chats.
+              </div>
+            ) : (
+              filteredSessions.map((s) => (
+                <div
+                  key={s.sessionId}
+                  className={`history-item ${s.sessionId === sessionId ? 'active' : ''}`}
+                  onClick={() => loadSession(s.sessionId)}
+                >
+                  <span className="history-icon">🗨️</span>
+                  <div className="history-text">
+                    <div className="history-title">{s.title || 'Therapy Session'}</div>
+                    <div className="history-meta">
+                      {s.updatedAt ? new Date(s.updatedAt).toLocaleDateString() : ''}
+                    </div>
+                  </div>
+
+                  {/* ChatGPT-style 3-dots Menu */}
+                  <div className="menu-wrapper" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className={`dots-btn ${openMenuSessionId === s.sessionId ? 'active' : ''}`}
+                      title="Chat options"
+                      onClick={() => setOpenMenuSessionId(openMenuSessionId === s.sessionId ? null : s.sessionId)}
+                    >
+                      •••
+                    </button>
+                    {openMenuSessionId === s.sessionId && (
+                      <div className="session-menu-dropdown">
+                        <button
+                          className="menu-item"
+                          onClick={async () => {
+                            setOpenMenuSessionId(null);
+                            const text = await exportSession(s.sessionId);
+                            setShareTranscript(text);
+                          }}
+                        >
+                          🔗 Share Transcript
+                        </button>
+                        <button
+                          className="menu-item"
+                          onClick={() => {
+                            setOpenMenuSessionId(null);
+                            archiveSession(s.sessionId);
+                          }}
+                        >
+                          {s.status === 'ARCHIVED' ? '📤 Unarchive' : '📦 Archive'}
+                        </button>
+                        <div className="menu-divider" />
+                        <button
+                          className="menu-item delete"
+                          onClick={() => {
+                            setOpenMenuSessionId(null);
+                            if (window.confirm('Are you sure you want to delete this chat history?')) {
+                              deleteSession(s.sessionId);
+                            }
+                          }}
+                        >
+                          🗑️ Delete Chat
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
         {/* Session progress */}
         <div className="signals-panel">
@@ -225,50 +404,15 @@ const ChatUI = () => {
         {signals && (
           <div className="signals-panel">
             <div className="signals-panel-title">🔍 Mental Health Signals</div>
-            <SignalBar
-              label="Depression"
-              icon="😔"
-              value={signals.depressionScore}
-              max={27}
-            />
-            <SignalBar
-              label="Anxiety"
-              icon="😰"
-              value={signals.anxietyScore}
-              max={21}
-            />
-            <SignalBar
-              label="Stress"
-              icon="😤"
-              value={signals.stressLevel}
-              max={10}
-            />
-            <SignalBar
-              label="Sleep Quality"
-              icon="😴"
-              value={signals.sleepQuality}
-              max={10}
-              invert
-            />
-            <SignalBar
-              label="Appetite"
-              icon="🍽️"
-              value={signals.appetiteLevel}
-              max={10}
-              invert
-            />
-            <SignalBar
-              label="Social"
-              icon="👥"
-              value={signals.socialEngagement}
-              max={10}
-              invert
-            />
+            <SignalBar label="Depression" icon="😔" value={signals.depressionScore} max={27} />
+            <SignalBar label="Anxiety" icon="😰" value={signals.anxietyScore} max={21} />
+            <SignalBar label="Stress" icon="😤" value={signals.stressLevel} max={10} />
+            <SignalBar label="Sleep Quality" icon="😴" value={signals.sleepQuality} max={10} invert />
+            <SignalBar label="Appetite" icon="🍽️" value={signals.appetiteLevel} max={10} invert />
+            <SignalBar label="Social" icon="👥" value={signals.socialEngagement} max={10} invert />
             {signals.estimatedRiskLevel && (
               <div style={{ marginTop: '0.75rem' }}>
-                <div
-                  className={`risk-badge-lg ${signals.estimatedRiskLevel}`}
-                >
+                <div className={`risk-badge-lg ${signals.estimatedRiskLevel}`}>
                   Estimated: {signals.estimatedRiskLevel}
                 </div>
               </div>
@@ -277,8 +421,7 @@ const ChatUI = () => {
         )}
 
         <div className="sidebar-tip">
-          💡 <strong>Privacy note:</strong> This conversation is private and used only to help
-          evaluate your mental wellbeing. Be honest for the most accurate results.
+          🔒 <strong>Privacy note:</strong> Click the <strong>•••</strong> menu on any chat to Archive, Share, or Delete.
         </div>
       </aside>
 
@@ -299,6 +442,9 @@ const ChatUI = () => {
             </div>
           </div>
           <div className="chat-header-actions">
+            <button className="new-chat-btn" onClick={handleOpenShare} title="Share or export transcript">
+              🔗 Share / Export
+            </button>
             {!sessionComplete && (
               <button
                 className="end-session-btn"
@@ -370,6 +516,14 @@ const ChatUI = () => {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {shareTranscript && (
+        <ShareModal
+          transcript={shareTranscript}
+          onClose={() => setShareTranscript(null)}
+        />
+      )}
 
       {/* Session complete modal */}
       {sessionComplete && completedAssessment && (

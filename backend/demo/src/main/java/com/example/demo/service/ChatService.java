@@ -5,8 +5,16 @@ import com.example.demo.dto.request.AssessmentRequest;
 import com.example.demo.dto.request.ChatMessageRequest;
 import com.example.demo.dto.request.ChatMessageRequest.ConversationTurn;
 import com.example.demo.dto.response.AssessmentResponse;
+import com.example.demo.dto.response.ChatMessageHistoryDto;
 import com.example.demo.dto.response.ChatMessageResponse;
 import com.example.demo.dto.response.ChatMessageResponse.MentalHealthSignals;
+import com.example.demo.dto.response.ChatSessionResponse;
+import com.example.demo.entity.ChatMessage;
+import com.example.demo.entity.ChatSession;
+import com.example.demo.entity.User;
+import com.example.demo.repository.ChatMessageRepository;
+import com.example.demo.repository.ChatSessionRepository;
+import com.example.demo.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +22,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * ChatService — orchestrates the Gemini API to produce empathetic
- * mental-health support responses and extracts running clinical signals
- * that can later be submitted as a formal assessment.
+ * mental-health support responses, extracts running clinical signals,
+ * and persists session/message history in MySQL with Delete/Archive/Export capabilities.
  */
 @Slf4j
 @Service
@@ -32,6 +42,9 @@ public class ChatService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final MlService mlService;
+    private final UserRepository userRepository;
+    private final ChatSessionRepository chatSessionRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Value("${gemini.api.key:}")
     private String geminiApiKey;
@@ -39,10 +52,8 @@ public class ChatService {
     private static final String GEMINI_URL =
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
 
-    // Minimum turns before we consider enough data for an assessment
     private static final int MIN_TURNS_FOR_ASSESSMENT = 8;
 
-    // Crisis keywords for immediate detection
     private static final List<String> CRISIS_KEYWORDS = List.of(
             "suicide", "suicidal", "kill myself", "end my life", "want to die",
             "self-harm", "self harm", "hurt myself", "cutting", "overdose",
@@ -53,11 +64,45 @@ public class ChatService {
     //  PUBLIC API
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Processes a single chat turn: sends the message to Gemini and returns
-     * the bot reply along with accumulated mental health signals.
-     */
-    public ChatMessageResponse processMessage(ChatMessageRequest request) {
+    @Transactional
+    public ChatMessageResponse processMessage(ChatMessageRequest request, String userEmail) {
+        User user = null;
+        if (userEmail != null && !userEmail.isBlank()) {
+            user = userRepository.findByEmail(userEmail).orElse(null);
+        }
+
+        String sessionId = request.getSessionId();
+        if (sessionId == null || sessionId.isBlank()) {
+            sessionId = UUID.randomUUID().toString();
+        }
+
+        ChatSession session = null;
+        if (user != null) {
+            final User finalUser = user;
+            final String finalSessionId = sessionId;
+            session = chatSessionRepository.findBySessionId(finalSessionId)
+                    .orElseGet(() -> {
+                        String title = request.getMessage().length() > 40
+                                ? request.getMessage().substring(0, 40) + "..."
+                                : request.getMessage();
+                        ChatSession newSession = ChatSession.builder()
+                                .user(finalUser)
+                                .sessionId(finalSessionId)
+                                .title(title)
+                                .status("ACTIVE")
+                                .build();
+                        return chatSessionRepository.save(newSession);
+                    });
+        }
+
+        if (session != null) {
+            ChatMessage userMsg = ChatMessage.builder()
+                    .chatSession(session)
+                    .sender("USER")
+                    .content(request.getMessage())
+                    .build();
+            chatMessageRepository.save(userMsg);
+        }
 
         boolean crisisDetected = detectCrisis(request.getMessage());
         int turnsCompleted = (request.getHistory() == null ? 0 : request.getHistory().size() / 2) + 1;
@@ -74,6 +119,25 @@ public class ChatService {
             signals = extractSignals(geminiRaw, turnsCompleted);
         }
 
+        if (session != null) {
+            String signalsJsonStr = null;
+            try {
+                if (signals != null) {
+                    signalsJsonStr = objectMapper.writeValueAsString(signals);
+                }
+            } catch (Exception e) {
+                log.warn("[Chat] Failed to serialize signals JSON: {}", e.getMessage());
+            }
+
+            ChatMessage botMsg = ChatMessage.builder()
+                    .chatSession(session)
+                    .sender("BOT")
+                    .content(botReply)
+                    .signalsJson(signalsJsonStr)
+                    .build();
+            chatMessageRepository.save(botMsg);
+        }
+
         boolean assessmentReady = turnsCompleted >= MIN_TURNS_FOR_ASSESSMENT
                 && signals != null
                 && signals.getDepressionScore() != null;
@@ -83,19 +147,148 @@ public class ChatService {
                 .signals(signals)
                 .assessmentReady(assessmentReady)
                 .crisisDetected(crisisDetected)
-                .sessionId(request.getSessionId())
+                .sessionId(sessionId)
                 .build();
     }
 
-    /**
-     * Converts accumulated chat signals into a formal assessment and submits it.
-     * Called when the user clicks "End Session & Get Analysis".
-     */
+    @Transactional(readOnly = true)
+    public List<ChatSessionResponse> getUserSessions(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+
+        List<ChatSession> sessions = chatSessionRepository.findByUserIdAndStatusNotOrderByUpdatedAtDesc(user.getId(), "DELETED");
+
+        return sessions.stream().map(s -> {
+            List<ChatMessage> msgs = chatMessageRepository.findByChatSessionIdOrderByCreatedAtAsc(s.getId());
+            return ChatSessionResponse.builder()
+                    .id(s.getId())
+                    .sessionId(s.getSessionId())
+                    .title(s.getTitle() != null && !s.getTitle().isBlank() ? s.getTitle() : "Conversation " + s.getSessionId().substring(0, 8))
+                    .status(s.getStatus())
+                    .createdAt(s.getCreatedAt())
+                    .updatedAt(s.getUpdatedAt())
+                    .messageCount(msgs.size())
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatMessageHistoryDto> getSessionMessages(String sessionId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+
+        ChatSession session = chatSessionRepository.findBySessionIdAndUserId(sessionId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Session not found or access denied: " + sessionId));
+
+        List<ChatMessage> messages = chatMessageRepository.findByChatSessionIdOrderByCreatedAtAsc(session.getId());
+
+        return messages.stream().map(m -> ChatMessageHistoryDto.builder()
+                .id(m.getId())
+                .sender(m.getSender())
+                .content(m.getContent())
+                .timestamp(m.getCreatedAt())
+                .signalsJson(m.getSignalsJson())
+                .build()
+        ).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ChatSessionResponse startNewSession(String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+
+        String sessionId = UUID.randomUUID().toString();
+        ChatSession newSession = ChatSession.builder()
+                .user(user)
+                .sessionId(sessionId)
+                .title("New Therapy Chat")
+                .status("ACTIVE")
+                .build();
+
+        ChatSession saved = chatSessionRepository.save(newSession);
+
+        return ChatSessionResponse.builder()
+                .id(saved.getId())
+                .sessionId(saved.getSessionId())
+                .title(saved.getTitle())
+                .status(saved.getStatus())
+                .createdAt(saved.getCreatedAt())
+                .updatedAt(saved.getUpdatedAt())
+                .messageCount(0)
+                .build();
+    }
+
+    @Transactional
+    public void deleteSession(String sessionId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+        ChatSession session = chatSessionRepository.findBySessionIdAndUserId(sessionId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+
+        session.setStatus("DELETED");
+        chatSessionRepository.save(session);
+    }
+
+    @Transactional
+    public ChatSessionResponse toggleArchiveSession(String sessionId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+        ChatSession session = chatSessionRepository.findBySessionIdAndUserId(sessionId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+
+        if ("ARCHIVED".equalsIgnoreCase(session.getStatus())) {
+            session.setStatus("ACTIVE");
+        } else {
+            session.setStatus("ARCHIVED");
+        }
+        ChatSession saved = chatSessionRepository.save(session);
+
+        List<ChatMessage> msgs = chatMessageRepository.findByChatSessionIdOrderByCreatedAtAsc(saved.getId());
+        return ChatSessionResponse.builder()
+                .id(saved.getId())
+                .sessionId(saved.getSessionId())
+                .title(saved.getTitle())
+                .status(saved.getStatus())
+                .createdAt(saved.getCreatedAt())
+                .updatedAt(saved.getUpdatedAt())
+                .messageCount(msgs.size())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public String exportTranscript(String sessionId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+        ChatSession session = chatSessionRepository.findBySessionIdAndUserId(sessionId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+
+        List<ChatMessage> messages = chatMessageRepository.findByChatSessionIdOrderByCreatedAtAsc(session.getId());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=========================================\n");
+        sb.append("   MindEase AI Therapy Chat Transcript   \n");
+        sb.append("=========================================\n");
+        sb.append("Session Title: ").append(session.getTitle()).append("\n");
+        sb.append("Session ID:    ").append(session.getSessionId()).append("\n");
+        sb.append("Date:          ").append(session.getCreatedAt()).append("\n\n");
+        sb.append("--- Conversation History ---\n\n");
+
+        for (ChatMessage msg : messages) {
+            String senderName = "USER".equalsIgnoreCase(msg.getSender()) ? "User" : "MindEase AI";
+            sb.append("[").append(senderName).append("]\n");
+            sb.append(msg.getContent()).append("\n\n");
+        }
+
+        sb.append("=========================================\n");
+        sb.append("End of Transcript\n");
+        return sb.toString();
+    }
+
+    @Transactional
     public AssessmentResponse completeSession(MentalHealthSignals signals,
                                                String conversationSummary,
                                                String userEmail) {
 
-        // Detect emotion from conversation summary via NLP
         String mlEmotion = null;
         try {
             MlService.MlEmotionResult emotionResult = mlService.analyzeEmotion(conversationSummary);
@@ -119,7 +312,7 @@ public class ChatService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    //  GEMINI INTEGRATION
+    //  GEMINI INTEGRATION & UTILITIES
     // ─────────────────────────────────────────────────────────────────────────
 
     private String callGemini(ChatMessageRequest request) {
@@ -198,7 +391,6 @@ If not enough info yet, use null for unknown fields.
     private List<Map<String, Object>> buildContents(ChatMessageRequest request, String systemPrompt) {
         List<Map<String, Object>> contents = new ArrayList<>();
 
-        // System instruction as first user turn
         contents.add(Map.of(
                 "role", "user",
                 "parts", List.of(Map.of("text", systemPrompt))
@@ -210,7 +402,6 @@ If not enough info yet, use null for unknown fields.
                         "I'll follow all the rules and always include the ---SIGNALS--- section in my responses."))
         ));
 
-        // Conversation history
         if (request.getHistory() != null) {
             for (ConversationTurn turn : request.getHistory()) {
                 contents.add(Map.of(
@@ -220,7 +411,6 @@ If not enough info yet, use null for unknown fields.
             }
         }
 
-        // Current user message
         contents.add(Map.of(
                 "role", "user",
                 "parts", List.of(Map.of("text", request.getMessage()))
@@ -242,7 +432,6 @@ If not enough info yet, use null for unknown fields.
                 List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
                 if (parts != null && !parts.isEmpty()) {
                     String fullText = (String) parts.get(0).get("text");
-                    // Split on signals marker and return only the bot message part
                     if (fullText != null && fullText.contains("---SIGNALS---")) {
                         return fullText.split("---SIGNALS---")[0].trim();
                     }
@@ -270,7 +459,6 @@ If not enough info yet, use null for unknown fields.
                     String fullText = (String) parts.get(0).get("text");
                     if (fullText != null && fullText.contains("---SIGNALS---")) {
                         String jsonPart = fullText.split("---SIGNALS---")[1].trim();
-                        // Extract just the JSON object
                         int start = jsonPart.indexOf('{');
                         int end = jsonPart.lastIndexOf('}');
                         if (start >= 0 && end > start) {
@@ -296,59 +484,6 @@ If not enough info yet, use null for unknown fields.
         }
         return MentalHealthSignals.builder().turnsCompleted(turnsCompleted).build();
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  ASSESSMENT MAPPING
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Maps chat-derived signals to AnswerRequest objects using the seeded question IDs.
-     * PHQ-9 (Q1-Q9): depression, each scored 0-3
-     * GAD-7 (Q10-Q16): anxiety, each scored 0-3
-     * Stress (Q17-Q20): stress, each scored 0-4
-     */
-    private List<AnswerRequest> buildAnswersFromSignals(MentalHealthSignals signals) {
-        List<AnswerRequest> answers = new ArrayList<>();
-
-        // Distribute depression score (0-27) across 9 PHQ-9 questions
-        int depressionScore = orDefault(signals.getDepressionScore(), 0);
-        int perDepressionQ = Math.min(3, depressionScore / 9);
-        for (long qId = 1; qId <= 9; qId++) {
-            answers.add(AnswerRequest.builder()
-                    .questionId(qId)
-                    .score(clamp(perDepressionQ, 0, 3))
-                    .responseText("Derived from conversational chat assessment")
-                    .build());
-        }
-
-        // Distribute anxiety score (0-21) across 7 GAD-7 questions
-        int anxietyScore = orDefault(signals.getAnxietyScore(), 0);
-        int perAnxietyQ = Math.min(3, anxietyScore / 7);
-        for (long qId = 10; qId <= 16; qId++) {
-            answers.add(AnswerRequest.builder()
-                    .questionId(qId)
-                    .score(clamp(perAnxietyQ, 0, 3))
-                    .responseText("Derived from conversational chat assessment")
-                    .build());
-        }
-
-        // Distribute stress score (0-10) across 4 Stress questions
-        int stressLevel = orDefault(signals.getStressLevel(), 0);
-        int perStressQ = Math.min(4, (int) Math.round(stressLevel * 4.0 / 10.0));
-        for (long qId = 17; qId <= 20; qId++) {
-            answers.add(AnswerRequest.builder()
-                    .questionId(qId)
-                    .score(clamp(perStressQ, 0, 4))
-                    .responseText("Derived from conversational chat assessment")
-                    .build());
-        }
-
-        return answers;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  FALLBACK (no API key)
-    // ─────────────────────────────────────────────────────────────────────────
 
     private String getFallbackResponse(String message, boolean crisis, int turns) {
         if (crisis) {
@@ -407,10 +542,6 @@ If not enough info yet, use null for unknown fields.
                 .build();
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  UTILITIES
-    // ─────────────────────────────────────────────────────────────────────────
-
     private boolean detectCrisis(String message) {
         if (message == null) return false;
         String lower = message.toLowerCase();
@@ -430,13 +561,5 @@ If not enough info yet, use null for unknown fields.
 
     private String toString(Object val) {
         return val == null ? null : val.toString();
-    }
-
-    private int orDefault(Integer val, int def) {
-        return val == null ? def : val;
-    }
-
-    private int clamp(int val, int min, int max) {
-        return Math.max(min, Math.min(max, val));
     }
 }
