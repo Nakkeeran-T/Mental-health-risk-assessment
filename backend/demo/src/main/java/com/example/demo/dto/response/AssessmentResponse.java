@@ -20,9 +20,12 @@ public class AssessmentResponse {
     private Integer totalScore;
     private String riskLevel;
     private String status;
+    private String source;           // MANUAL or AI_CHAT
+    private Double mlRiskConfidence; // XGBoost confidence (0.0–1.0), null if rule-based
+    private String mlEmotion;        // NLP-detected emotion (AI_CHAT only)
     private String notes;
-    private LocalDateTime createdAt;
-    private LocalDateTime completedAt;
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime completedAt;
     private List<AnswerResponse> answers;
     private List<RecommendationResponse> recommendations;
 
@@ -33,6 +36,9 @@ public class AssessmentResponse {
                 .totalScore(assessment.getTotalScore())
                 .riskLevel(assessment.getRiskLevel() != null ? assessment.getRiskLevel().name() : null)
                 .status(assessment.getStatus().name())
+                .source(assessment.getSource() != null ? assessment.getSource().name() : "MANUAL")
+                .mlRiskConfidence(assessment.getMlRiskConfidence())
+                .mlEmotion(assessment.getMlEmotion())
                 .notes(assessment.getNotes())
                 .createdAt(assessment.getCreatedAt())
                 .completedAt(assessment.getCompletedAt())
@@ -48,6 +54,9 @@ public class AssessmentResponse {
                 .totalScore(assessment.getTotalScore())
                 .riskLevel(assessment.getRiskLevel() != null ? assessment.getRiskLevel().name() : null)
                 .status(assessment.getStatus().name())
+                .source(assessment.getSource() != null ? assessment.getSource().name() : "MANUAL")
+                .mlRiskConfidence(assessment.getMlRiskConfidence())
+                .mlEmotion(assessment.getMlEmotion())
                 .createdAt(assessment.getCreatedAt())
                 .completedAt(assessment.getCompletedAt())
                 .build();

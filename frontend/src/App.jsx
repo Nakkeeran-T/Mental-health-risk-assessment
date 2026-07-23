@@ -17,6 +17,7 @@ import Habits from './pages/Habits';
 import Breathing from './pages/Breathing';
 import Journal from './pages/Journal';
 import Crisis from './pages/Crisis';
+import Chat from './pages/Chat';
 
 function App() {
   return (
@@ -104,6 +105,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <Crisis />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/chat" 
+            element={
+              <ProtectedRoute>
+                <Chat />
               </ProtectedRoute>
             } 
           />

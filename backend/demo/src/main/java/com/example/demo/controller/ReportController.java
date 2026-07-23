@@ -23,22 +23,7 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    /**
-     * POST /api/reports/generate/{assessmentId}
-     *
-     * Response JSON:
-     * {
-     *   "success": true,
-     *   "message": "Report generated",
-     *   "data": {
-     *     "id": 1,
-     *     "userId": 1,
-     *     "assessmentId": 1,
-     *     "summary": "Mental Health Assessment Report — ...",
-     *     "details": "=== Assessment Details === ..."
-     *   }
-     * }
-     */
+    /** POST /api/reports/generate/{assessmentId} */
     @PostMapping("/generate/{assessmentId}")
     @Operation(summary = "Generate a report for a completed assessment")
     public ResponseEntity<ApiResponse<ReportResponse>> generateReport(

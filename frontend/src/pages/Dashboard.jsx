@@ -45,7 +45,10 @@ const Dashboard = () => {
   const [loggingMood, setLoggingMood] = useState(false);
   const [logSuccess, setLogSuccess] = useState('');
 
-  // Dashboard Tour state — show on first visit
+  // ML Mood Forecast
+  const [moodForecast, setMoodForecast] = useState(null);
+
+  // Dashboard Tour state—show on first visit
   const [showTour, setShowTour] = useState(false);
 
   const fetchDashboardData = async () => {
@@ -58,7 +61,20 @@ const Dashboard = () => {
       // Fetch Mood History
       try {
         const moodRes = await api.get('/mood/history');
-        setMoodHistory(moodRes.data.data || []);
+        const moodData = moodRes.data.data || [];
+        setMoodHistory(moodData);
+
+        // Fetch ML Mood Forecast if we have data
+        if (moodData.length > 0) {
+          try {
+            const forecastRes = await api.get('/mood/forecast');
+            if (forecastRes.data.data?.predictedScore) {
+              setMoodForecast(forecastRes.data.data);
+            }
+          } catch (e) {
+            console.warn('Mood forecast unavailable (ML service may be offline):', e);
+          }
+        }
       } catch (e) {
         console.warn('Mood history not available:', e);
       }
@@ -227,6 +243,41 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* ── AI Chat CTA Banner ── */}
+      <div
+        className="glass-card"
+        style={{
+          marginBottom: '1.5rem',
+          background: 'linear-gradient(135deg, rgba(138,43,226,0.15) 0%, rgba(0,242,254,0.08) 100%)',
+          border: '1px solid rgba(138,43,226,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          padding: '1.5rem 2rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontSize: '2.5rem' }}>🤖</span>
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>
+              Try AI Mental Health Chat
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Have a natural conversation with MindEase AI — it evaluates your mental status as you chat, no questionnaires needed.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/chat"
+          className="btn-primary"
+          style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+        >
+          🤖 Start AI Chat
+        </Link>
+      </div>
+
       {/* Main Dashboard Grid */}
       <div className="dashboard-grid">
 
@@ -280,6 +331,65 @@ const Dashboard = () => {
               </form>
             )}
           </div>
+
+          {/* ML Mood Forecast Card */}
+          {moodForecast && (
+            <div className="glass-card" style={{
+              marginBottom: '1.5rem',
+              background: moodForecast.alert
+                ? 'linear-gradient(135deg, rgba(248,113,113,0.08) 0%, rgba(167,139,250,0.06) 100%)'
+                : 'linear-gradient(135deg, rgba(0,242,254,0.06) 0%, rgba(16,185,129,0.06) 100%)',
+              border: `1px solid ${moodForecast.alert ? 'rgba(248,113,113,0.25)' : 'rgba(16,185,129,0.2)'}`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 className="widget-title" style={{ marginBottom: '0.25rem' }}>
+                    🧠 AI Mood Forecast
+                    <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.5rem' }}>Linear Regression</span>
+                  </h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>{moodForecast.message}</p>
+                </div>
+                {/* Predicted Score Ring */}
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  <div style={{
+                    width: 70, height: 70, borderRadius: '50%',
+                    border: `4px solid ${moodForecast.alert ? '#f87171' : '#10b981'}`,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 0 16px ${moodForecast.alert ? '#f8717140' : '#10b98140'}`
+                  }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 800, color: moodForecast.alert ? '#f87171' : '#10b981', lineHeight: 1 }}>
+                      {moodForecast.predictedScore?.toFixed(1)}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>/ 5</span>
+                  </div>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>Tomorrow</p>
+                </div>
+              </div>
+
+              {/* Trend indicator */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                <span style={{
+                  padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.78rem', fontWeight: 600,
+                  background: moodForecast.trend === 'declining' ? 'rgba(248,113,113,0.15)' : moodForecast.trend === 'improving' ? 'rgba(16,185,129,0.15)' : 'rgba(156,163,175,0.15)',
+                  color: moodForecast.trend === 'declining' ? '#f87171' : moodForecast.trend === 'improving' ? '#10b981' : '#9ca3af',
+                }}>
+                  {moodForecast.trend === 'declining' ? '📉 Declining' : moodForecast.trend === 'improving' ? '📈 Improving' : '→ Stable'}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', alignSelf: 'center' }}>
+                  Based on last {moodForecast.dataPointsUsed} mood entries
+                </span>
+                {moodForecast.alert && (
+                  <span style={{
+                    padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.78rem', fontWeight: 600,
+                    background: 'rgba(248,113,113,0.15)', color: '#f87171',
+                    animation: 'pulse 2s infinite'
+                  }}>
+                    ⚠️ Check-in Recommended
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Assessment Progress Chart — only when assessments exist */}
           {history.length > 0 ? (

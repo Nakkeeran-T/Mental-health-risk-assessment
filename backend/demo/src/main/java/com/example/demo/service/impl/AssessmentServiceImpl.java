@@ -7,6 +7,7 @@ import com.example.demo.entity.Answer;
 import com.example.demo.entity.Assessment;
 import com.example.demo.entity.Question;
 import com.example.demo.entity.User;
+import com.example.demo.enums.AssessmentSource;
 import com.example.demo.enums.AssessmentStatus;
 import com.example.demo.enums.QuestionCategory;
 import com.example.demo.enums.RiskLevel;
@@ -41,14 +42,13 @@ public class AssessmentServiceImpl implements AssessmentService {
     public AssessmentResponse submitAssessment(String userEmail, AssessmentRequest request) {
         User user = userService.getCurrentUser(userEmail);
 
-        // 1. Create the assessment
         Assessment assessment = Assessment.builder()
                 .user(user)
                 .status(AssessmentStatus.IN_PROGRESS)
                 .notes(request.getNotes())
+                .source(AssessmentSource.MANUAL)
                 .build();
 
-        // 2. Process each answer
         int totalScore = 0;
 
         for (AnswerRequest answerReq : request.getAnswers()) {
@@ -66,33 +66,47 @@ public class AssessmentServiceImpl implements AssessmentService {
             totalScore += answerReq.getScore();
         }
 
-        // Group answers by category for specific scale scoring
         Map<QuestionCategory, List<Answer>> groupedAnswers = assessment.getAnswers().stream()
                 .collect(Collectors.groupingBy(a -> a.getQuestion().getCategory()));
 
-        RiskLevel depressionRisk = riskAssessmentEngine.calculatePhq9Score(groupedAnswers.get(QuestionCategory.DEPRESSION));
-        RiskLevel anxietyRisk = riskAssessmentEngine.calculateGad7Score(groupedAnswers.get(QuestionCategory.ANXIETY));
-        RiskLevel stressRisk = riskAssessmentEngine.calculateStressScore(groupedAnswers.get(QuestionCategory.STRESS));
+        List<Answer> depressionAnswers = groupedAnswers.get(QuestionCategory.DEPRESSION);
+        List<Answer> anxietyAnswers = groupedAnswers.get(QuestionCategory.ANXIETY);
+        List<Answer> stressAnswers = groupedAnswers.get(QuestionCategory.STRESS);
 
-        // 3. Determine overall risk level
-        RiskLevel overallRisk = riskAssessmentEngine.determineOverallRiskLevel(depressionRisk, anxietyRisk, stressRisk);
+        int depScore = sumScores(depressionAnswers);
+        int anxScore = sumScores(anxietyAnswers);
+        int stressScore = sumScores(stressAnswers);
 
-        // Fallback for general or unspecified categories
-        if (overallRisk == RiskLevel.LOW && depressionRisk == null && anxietyRisk == null && stressRisk == null) {
-            overallRisk = riskAssessmentEngine.calculateStressScore(assessment.getAnswers());
+        int maxStress = maxScores(stressAnswers);
+        int stressNorm = maxStress > 0 ? (int) Math.round((double) stressScore / maxStress * 10) : 5;
+
+        RiskAssessmentEngine.RiskAssessmentResult mlResult = riskAssessmentEngine.predictWithMl(
+                depScore, anxScore, stressNorm,
+                7, // sleep_quality: default mid-range (not collected in questionnaire)
+                7, // social_engagement: default mid-range
+                7 // appetite_level: default mid-range
+        );
+
+        RiskLevel overallRisk = mlResult.riskLevel();
+        Double mlConfidence = mlResult.mlConfidence();
+
+        if (overallRisk == null) {
+            RiskLevel depressionRisk = riskAssessmentEngine.calculatePhq9Score(depressionAnswers);
+            RiskLevel anxietyRisk = riskAssessmentEngine.calculateGad7Score(anxietyAnswers);
+            RiskLevel stressRisk = riskAssessmentEngine.calculateStressScore(stressAnswers);
+            overallRisk = riskAssessmentEngine.determineOverallRiskLevel(depressionRisk, anxietyRisk, stressRisk);
         }
 
         assessment.setTotalScore(totalScore);
         assessment.setRiskLevel(overallRisk);
+        assessment.setMlRiskConfidence(mlConfidence);
         assessment.setStatus(AssessmentStatus.COMPLETED);
-        assessment.setCompletedAt(LocalDateTime.now());
+        assessment.setCompletedAt(java.time.LocalDateTime.now());
 
         Assessment savedAssessment = assessmentRepository.save(assessment);
 
-        // 4. Auto-generate recommendations based on risk level
         recommendationService.generateRecommendations(savedAssessment.getId());
 
-        // Refresh to include generated recommendations
         Assessment refreshed = assessmentRepository.findById(savedAssessment.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", savedAssessment.getId()));
 
@@ -105,7 +119,8 @@ public class AssessmentServiceImpl implements AssessmentService {
         Assessment assessment = assessmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", id));
 
-        // Users can only view their own assessments (admin bypass handled at controller level)
+        // Users can only view their own assessments (admin bypass handled at controller
+        // level)
         if (!assessment.getUser().getEmail().equals(userEmail)) {
             throw new ResourceNotFoundException("Assessment", "id", id);
         }
@@ -129,5 +144,19 @@ public class AssessmentServiceImpl implements AssessmentService {
         return assessmentRepository.findAll().stream()
                 .map(AssessmentResponse::summary)
                 .toList();
+    }
+
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    private int sumScores(List<Answer> answers) {
+        if (answers == null || answers.isEmpty())
+            return 0;
+        return answers.stream().mapToInt(Answer::getScore).sum();
+    }
+
+    private int maxScores(List<Answer> answers) {
+        if (answers == null || answers.isEmpty())
+            return 0;
+        return answers.stream().mapToInt(a -> a.getQuestion().getMaxScore()).sum();
     }
 }

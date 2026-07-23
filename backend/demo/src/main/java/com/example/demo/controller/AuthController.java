@@ -21,31 +21,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * POST /api/auth/register
-     *
-     * Request JSON:
-     * {
-     *   "firstName": "John",
-     *   "lastName": "Doe",
-     *   "email": "john@example.com",
-     *   "password": "password123"
-     * }
-     *
-     * Response JSON:
-     * {
-     *   "success": true,
-     *   "message": "Registration successful",
-     *   "data": {
-     *     "token": "eyJhb...",
-     *     "type": "Bearer",
-     *     "userId": 1,
-     *     "email": "john@example.com",
-     *     "firstName": "John",
-     *     "role": "USER"
-     *   }
-     * }
-     */
+    /** POST /api/auth/register */
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account and returns a JWT token")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
@@ -55,29 +31,7 @@ public class AuthController {
                 .body(ApiResponse.success("Registration successful", response));
     }
 
-    /**
-     * POST /api/auth/login
-     *
-     * Request JSON:
-     * {
-     *   "email": "john@example.com",
-     *   "password": "password123"
-     * }
-     *
-     * Response JSON:
-     * {
-     *   "success": true,
-     *   "message": "Login successful",
-     *   "data": {
-     *     "token": "eyJhb...",
-     *     "type": "Bearer",
-     *     "userId": 1,
-     *     "email": "john@example.com",
-     *     "firstName": "John",
-     *     "role": "USER"
-     *   }
-     * }
-     */
+    /** POST /api/auth/login */
     @PostMapping("/login")
     @Operation(summary = "Authenticate user", description = "Authenticates a user and returns a JWT token")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
