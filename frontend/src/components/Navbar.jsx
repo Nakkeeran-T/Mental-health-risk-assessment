@@ -39,6 +39,12 @@ const Navbar = () => {
                 Assess Risk
               </Link>
               <Link
+                to="/chat"
+                className={`nav-link chat-nav-link ${isActive('/chat') ? 'active' : ''}`}
+              >
+                🤖 AI Chat
+              </Link>
+              <Link
                 to="/habits"
                 className={`nav-link ${isActive('/habits') ? 'active' : ''}`}
               >

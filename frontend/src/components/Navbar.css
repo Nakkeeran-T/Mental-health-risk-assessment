@@ -128,6 +128,30 @@
   box-shadow: 0 0 8px var(--color-critical) !important;
 }
 
+/* AI Chat nav link — stands out with gradient glow */
+.chat-nav-link {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700 !important;
+  filter: drop-shadow(0 0 4px rgba(138, 43, 226, 0.4));
+  transition: var(--transition-smooth);
+}
+
+.chat-nav-link:hover {
+  filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.7));
+}
+
+.chat-nav-link.active {
+  -webkit-text-fill-color: transparent;
+}
+
+.chat-nav-link.active::after {
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
 /* Mobile responsive navigation styles */
 @media (max-width: 768px) {
   .navbar-inner {

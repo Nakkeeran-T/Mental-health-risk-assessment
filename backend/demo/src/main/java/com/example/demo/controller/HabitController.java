@@ -80,16 +80,12 @@ public class HabitController {
         LocalDateTime lastCompleted = habit.getLastCompletedAt();
 
         if (lastCompleted != null && lastCompleted.toLocalDate().equals(now.toLocalDate())) {
-            // Already completed today: toggle it back to incomplete
             habit.setLastCompletedAt(null);
             habit.setStreakCount(Math.max(0, habit.getStreakCount() - 1));
         } else {
-            // Not completed today
             if (lastCompleted != null && lastCompleted.toLocalDate().equals(now.toLocalDate().minusDays(1))) {
-                // Completed yesterday: increment streak
                 habit.setStreakCount(habit.getStreakCount() + 1);
             } else {
-                // Broken streak or first time: reset to 1
                 habit.setStreakCount(1);
             }
             habit.setLastCompletedAt(now);
