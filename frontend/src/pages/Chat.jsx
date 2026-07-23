@@ -3,21 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ChatProvider, useChatContext } from '../context/ChatContext';
 import './Chat.css';
 
-// ── Signal helpers ────────────────────────────────────────────────────
 
-const getBarClass = (value, max) => {
-  const pct = (value / max) * 100;
-  if (pct < 35) return 'good';
-  if (pct < 65) return 'warning';
-  return 'danger';
-};
-
-const invertBarClass = (value, max) => {
-  const pct = (value / max) * 100;
-  if (pct >= 65) return 'good';
-  if (pct >= 35) return 'warning';
-  return 'danger';
-};
 
 const formatTime = (date) => {
   try {
@@ -29,27 +15,7 @@ const formatTime = (date) => {
 
 // ── Sub-components ────────────────────────────────────────────────────
 
-const SignalBar = ({ label, icon, value, max, invert = false }) => {
-  const pct = value != null ? Math.min(100, Math.round((value / max) * 100)) : 0;
-  const cls = invert ? invertBarClass(value ?? 0, max) : getBarClass(value ?? 0, max);
 
-  return (
-    <div className="signal-row">
-      <span className="signal-label">
-        {icon} {label}
-      </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <div className="signal-bar-wrapper">
-          <div
-            className={`signal-bar-fill ${cls}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <span className="signal-value">{value ?? '–'}</span>
-      </div>
-    </div>
-  );
-};
 
 const TypingIndicator = () => (
   <div className="typing-row">
@@ -203,9 +169,7 @@ const ChatUI = () => {
     sessionId,
     sessions,
     messages,
-    signals,
     isTyping,
-    assessmentReady,
     crisisDetected,
     sessionComplete,
     completedAssessment,
@@ -271,8 +235,7 @@ const ChatUI = () => {
     return s.status !== 'ARCHIVED';
   });
 
-  const turnsCompleted = signals?.turnsCompleted ?? 0;
-  const progressPct = Math.min(100, Math.round((turnsCompleted / 8) * 100));
+
 
   return (
     <div className="chat-page">
@@ -380,45 +343,7 @@ const ChatUI = () => {
           </div>
         </div>
 
-        {/* Session progress */}
-        <div className="signals-panel">
-          <div className="signals-panel-title">📊 Session Progress</div>
-          <div className="signal-row">
-            <span className="signal-label">💬 Conversation depth</span>
-            <span className="signal-value">{turnsCompleted}/8</span>
-          </div>
-          <div className="signal-bar-wrapper" style={{ width: '100%', height: '6px', marginBottom: '0.5rem' }}>
-            <div
-              className="signal-bar-fill good"
-              style={{ width: `${progressPct}%`, background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-secondary))' }}
-            />
-          </div>
-          {assessmentReady && (
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-low)', marginTop: '0.25rem' }}>
-              ✅ Enough data for assessment
-            </div>
-          )}
-        </div>
 
-        {/* Mental health signals */}
-        {signals && (
-          <div className="signals-panel">
-            <div className="signals-panel-title">🔍 Mental Health Signals</div>
-            <SignalBar label="Depression" icon="😔" value={signals.depressionScore} max={27} />
-            <SignalBar label="Anxiety" icon="😰" value={signals.anxietyScore} max={21} />
-            <SignalBar label="Stress" icon="😤" value={signals.stressLevel} max={10} />
-            <SignalBar label="Sleep Quality" icon="😴" value={signals.sleepQuality} max={10} invert />
-            <SignalBar label="Appetite" icon="🍽️" value={signals.appetiteLevel} max={10} invert />
-            <SignalBar label="Social" icon="👥" value={signals.socialEngagement} max={10} invert />
-            {signals.estimatedRiskLevel && (
-              <div style={{ marginTop: '0.75rem' }}>
-                <div className={`risk-badge-lg ${signals.estimatedRiskLevel}`}>
-                  Estimated: {signals.estimatedRiskLevel}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         <div className="sidebar-tip">
           🔒 <strong>Privacy note:</strong> Click the <strong>•••</strong> menu on any chat to Archive, Share, or Delete.
@@ -449,8 +374,8 @@ const ChatUI = () => {
               <button
                 className="end-session-btn"
                 onClick={completeSession}
-                disabled={!assessmentReady || isTyping}
-                title={assessmentReady ? 'Generate your mental health assessment' : 'Continue chatting to gather more data'}
+                disabled={isTyping}
+                title="Generate your mental health assessment"
               >
                 📋 End Session & Get Analysis
               </button>

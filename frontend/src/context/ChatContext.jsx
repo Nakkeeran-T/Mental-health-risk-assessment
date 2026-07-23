@@ -56,7 +56,7 @@ export const ChatProvider = ({ children }) => {
         const formatted = historyMsgs.map((m) => {
           let parsedSignals = null;
           if (m.signalsJson) {
-            try { parsedSignals = JSON.parse(m.signalsJson); } catch (e) {}
+            try { parsedSignals = JSON.parse(m.signalsJson); } catch (e) { console.error("Failed to parse signals", e); }
           }
           return {
             id: m.id,
