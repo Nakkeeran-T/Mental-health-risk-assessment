@@ -32,22 +32,18 @@ public class ReportServiceImpl implements ReportService {
         Assessment assessment = assessmentRepository.findById(assessmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Assessment", "id", assessmentId));
 
-        // Ensure the assessment belongs to the requesting user
         if (!assessment.getUser().getId().equals(user.getId())) {
             throw new ResourceNotFoundException("Assessment", "id", assessmentId);
         }
 
-        // Ensure the assessment is completed
         if (assessment.getStatus() != AssessmentStatus.COMPLETED) {
             throw new BadRequestException("Cannot generate report for an incomplete assessment");
         }
 
-        // Check if a report already exists for this assessment
         if (reportRepository.findByAssessmentId(assessmentId).isPresent()) {
             throw new BadRequestException("A report has already been generated for this assessment");
         }
 
-        // Build report content
         String summary = buildSummary(assessment);
         String details = buildDetails(assessment);
 

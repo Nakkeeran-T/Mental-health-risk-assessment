@@ -25,33 +25,7 @@ public class AssessmentController {
 
     private final AssessmentService assessmentService;
 
-    /**
-     * POST /api/assessments/submit
-     *
-     * Request JSON:
-     * {
-     *   "answers": [
-     *     { "questionId": 1, "score": 3, "responseText": "Sometimes" },
-     *     { "questionId": 2, "score": 4 }
-     *   ],
-     *   "notes": "Feeling stressed lately"
-     * }
-     *
-     * Response JSON:
-     * {
-     *   "success": true,
-     *   "message": "Assessment submitted",
-     *   "data": {
-     *     "id": 1,
-     *     "userId": 1,
-     *     "totalScore": 7,
-     *     "riskLevel": "MODERATE",
-     *     "status": "COMPLETED",
-     *     "answers": [...],
-     *     "recommendations": [...]
-     *   }
-     * }
-     */
+    /** POST /api/assessments/submit */
     @PostMapping("/submit")
     @Operation(summary = "Submit a new assessment")
     public ResponseEntity<ApiResponse<AssessmentResponse>> submitAssessment(

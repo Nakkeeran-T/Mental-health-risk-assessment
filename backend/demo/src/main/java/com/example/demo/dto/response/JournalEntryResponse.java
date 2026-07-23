@@ -19,8 +19,10 @@ public class JournalEntryResponse {
     private String content;
     private Integer moodTag;
     private String category;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String detectedEmotion;    // NLP-detected emotion (joy/sadness/anger/optimism)
+    private Double emotionConfidence;  // Confidence score 0.0–1.0
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
 
     public static JournalEntryResponse from(JournalEntry entry) {
         return JournalEntryResponse.builder()
@@ -29,6 +31,8 @@ public class JournalEntryResponse {
                 .content(entry.getContent())
                 .moodTag(entry.getMoodTag())
                 .category(entry.getCategory())
+                .detectedEmotion(entry.getDetectedEmotion())
+                .emotionConfidence(entry.getEmotionConfidence())
                 .createdAt(entry.getCreatedAt())
                 .updatedAt(entry.getUpdatedAt())
                 .build();

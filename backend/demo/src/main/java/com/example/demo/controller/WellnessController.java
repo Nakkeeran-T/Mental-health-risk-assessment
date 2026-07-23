@@ -60,14 +60,13 @@ public class WellnessController {
                 .findFirst()
                 .orElse(null);
 
-        int riskScore = 50; // neutral default if no assessments
+        int riskScore = 50;
         long daysSinceLastAssessment = 999;
         boolean assessmentDue = true;
 
         if (latestAssessment != null) {
             int maxScore = 40;
             int rawScore = latestAssessment.getTotalScore() != null ? latestAssessment.getTotalScore() : 0;
-            // Invert: lower risk score → higher wellness
             riskScore = Math.max(0, Math.min(100, (int) (((double)(maxScore - rawScore) / maxScore) * 100)));
 
             if (latestAssessment.getCreatedAt() != null) {
@@ -80,11 +79,10 @@ public class WellnessController {
         // ── 2. Mood Score ──────────────────────────────────────
         // Average of last 7 mood entries, scaled from 1-5 range to 0-100.
         List<MoodEntry> recentMoods = moodEntryRepository.findByUserIdOrderByCreatedAtDesc(userId);
-        int moodScore = 50; // neutral default
+        int moodScore = 50;
         if (!recentMoods.isEmpty()) {
             List<MoodEntry> last7 = recentMoods.subList(0, Math.min(7, recentMoods.size()));
             double avg = last7.stream().mapToInt(MoodEntry::getMoodScore).average().orElse(3.0);
-            // Scale 1-5 → 0-100
             moodScore = (int) Math.round(((avg - 1.0) / 4.0) * 100);
         }
 
@@ -100,7 +98,7 @@ public class WellnessController {
                     .count();
             habitScore = (int) Math.round(((double) completedToday / habits.size()) * 100);
         } else {
-            habitScore = 50; // No habits set — neutral
+            habitScore = 50;
         }
 
         // ── 4. Journal Score ──────────────────────────────────

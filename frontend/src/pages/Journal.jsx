@@ -6,6 +6,11 @@ const CATEGORIES = ['Gratitude', 'Anxiety', 'Goals', 'Reflection', 'Stress', 'Pr
 const MOOD_LABELS = { 1: '😩 Severely Down', 2: '😟 Anxious', 3: '😐 Neutral', 4: '🙂 Good', 5: '😀 Great' };
 const MOOD_COLORS = { 1: 'var(--color-critical)', 2: 'var(--color-high)', 3: 'var(--color-moderate)', 4: 'var(--color-low)', 5: '#00f2fe' };
 
+const EMOTION_EMOJI = { joy: '😊', optimism: '🌟', sadness: '😔', anger: '😠', neutral: '😐' };
+const EMOTION_COLOR = { joy: '#00f2fe', optimism: '#f9d71c', sadness: '#a78bfa', anger: '#f87171', neutral: '#9ca3af' };
+const getEmotionEmoji = (e) => EMOTION_EMOJI[e?.toLowerCase()] || '🧠';
+const getEmotionColor = (e) => EMOTION_COLOR[e?.toLowerCase()] || '#9ca3af';
+
 const Journal = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -236,6 +241,20 @@ const Journal = () => {
                     {entry.moodTag && (
                       <span className="mood-tag-display" style={{ color: MOOD_COLORS[entry.moodTag] }}>
                         {entry.moodTag === 1 ? '😩' : entry.moodTag === 2 ? '😟' : entry.moodTag === 3 ? '😐' : entry.moodTag === 4 ? '🙂' : '😀'}
+                      </span>
+                    )}
+                    {/* NLP-detected emotion tag */}
+                    {entry.detectedEmotion && (
+                      <span title={`NLP detected: ${entry.detectedEmotion}${entry.emotionConfidence ? ` (${(entry.emotionConfidence*100).toFixed(0)}%)` : ''}`}
+                        style={{
+                          fontSize: '0.72rem', padding: '0.15rem 0.55rem', borderRadius: 999,
+                          fontWeight: 600, letterSpacing: '0.03em',
+                          background: `${getEmotionColor(entry.detectedEmotion)}18`,
+                          color: getEmotionColor(entry.detectedEmotion),
+                          border: `1px solid ${getEmotionColor(entry.detectedEmotion)}35`,
+                          cursor: 'help'
+                        }}>
+                        {getEmotionEmoji(entry.detectedEmotion)} {entry.detectedEmotion}
                       </span>
                     )}
                   </div>
