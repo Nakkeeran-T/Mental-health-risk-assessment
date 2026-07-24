@@ -332,6 +332,58 @@ public class ChatService {
         return assessmentService.submitAssessment(userEmail, assessmentRequest);
     }
 
+    private List<AnswerRequest> buildAnswersFromSignals(MentalHealthSignals signals) {
+        List<AnswerRequest> answers = new ArrayList<>();
+        if (signals == null) {
+            return answers;
+        }
+
+        if (signals.getDepressionScore() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(1L)
+                    .score(signals.getDepressionScore())
+                    .responseText("Depression score extracted from chat session")
+                    .build());
+        }
+        if (signals.getAnxietyScore() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(2L)
+                    .score(signals.getAnxietyScore())
+                    .responseText("Anxiety score extracted from chat session")
+                    .build());
+        }
+        if (signals.getStressLevel() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(3L)
+                    .score(signals.getStressLevel())
+                    .responseText("Stress level extracted from chat session")
+                    .build());
+        }
+        if (signals.getSleepQuality() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(4L)
+                    .score(signals.getSleepQuality())
+                    .responseText("Sleep quality score extracted from chat session")
+                    .build());
+        }
+        if (signals.getAppetiteLevel() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(5L)
+                    .score(signals.getAppetiteLevel())
+                    .responseText("Appetite level score extracted from chat session")
+                    .build());
+        }
+        if (signals.getSocialEngagement() != null) {
+            answers.add(AnswerRequest.builder()
+                    .questionId(6L)
+                    .score(signals.getSocialEngagement())
+                    .responseText("Social engagement score extracted from chat session")
+                    .build());
+        }
+
+        return answers;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // GEMINI INTEGRATION & UTILITIES
     // ─────────────────────────────────────────────────────────────────────────
@@ -472,15 +524,15 @@ public class ChatService {
                             Map<String, Object> signalMap = objectMapper.readValue(jsonPart, new TypeReference<>() {
                             });
                             return MentalHealthSignals.builder()
-                                     .depressionScore(toInt(signalMap.get("depressionScore")))
-                                     .anxietyScore(toInt(signalMap.get("anxietyScore")))
-                                     .stressLevel(toInt(signalMap.get("stressLevel")))
-                                     .sleepQuality(toInt(signalMap.get("sleepQuality")))
-                                     .appetiteLevel(toInt(signalMap.get("appetiteLevel")))
-                                     .socialEngagement(toInt(signalMap.get("socialEngagement")))
-                                     .estimatedRiskLevel(toString(signalMap.get("estimatedRiskLevel")))
-                                     .turnsCompleted(turnsCompleted)
-                                     .build();
+                                    .depressionScore(toInt(signalMap.get("depressionScore")))
+                                    .anxietyScore(toInt(signalMap.get("anxietyScore")))
+                                    .stressLevel(toInt(signalMap.get("stressLevel")))
+                                    .sleepQuality(toInt(signalMap.get("sleepQuality")))
+                                    .appetiteLevel(toInt(signalMap.get("appetiteLevel")))
+                                    .socialEngagement(toInt(signalMap.get("socialEngagement")))
+                                    .estimatedRiskLevel(toString(signalMap.get("estimatedRiskLevel")))
+                                    .turnsCompleted(turnsCompleted)
+                                    .build();
                         }
                     }
                 }
@@ -508,7 +560,8 @@ public class ChatService {
             return "That's a great question! While operating in local fallback mode, I can listen and offer general guidance. What aspect of this would you like to discuss further?";
         }
 
-        if (lower.matches(".*\\b(sad|anxious|stress|stressed|depressed|worried|tired|exhausted|overwhelmed|lonely)\\b.*")) {
+        if (lower.matches(
+                ".*\\b(sad|anxious|stress|stressed|depressed|worried|tired|exhausted|overwhelmed|lonely)\\b.*")) {
             return "Thank you for sharing how you're feeling. Dealing with that can be really heavy and challenging. I'm here to support you — what do you think is contributing most to how you're feeling right now?";
         }
 
