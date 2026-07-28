@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════
-   Assessment — Conversational Flow Design
-   Calm, focused, one-question-at-a-time experience
+   Assessment.css — Conversational Flow Design
+   Calm, focused, one-question-at-a-time experience.
+   See index.css for design tokens.
    ═══════════════════════════════════════════════════════ */
 
 /* ── Scale Selection Screen ── */
@@ -12,14 +13,14 @@
 .selection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
 }
 
 .selection-card {
   cursor: pointer;
   text-align: center;
-  padding: 2.5rem 1.5rem;
+  padding: 2.5rem var(--space-6);
   transition: var(--transition-smooth);
 }
 
@@ -29,30 +30,25 @@
   transform: translateY(-4px);
 }
 
-.selection-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+.selection-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-xl);
 }
 
-.selection-card h3 {
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
-}
+.selection-icon      { font-size: 3rem; margin-bottom: var(--space-4); }
+.selection-card h3   { font-size: var(--text-xl); margin-bottom: var(--space-2); }
+.selection-card p    { color: var(--text-secondary); font-size: var(--text-base); }
 
-.selection-card p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Conversational Assessment Layout
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 .conversation-assessment {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   min-height: calc(100vh - 100px);
-  padding-top: 3rem;
+  padding-top: var(--space-12);
 }
 
 .questionnaire-container {
@@ -64,9 +60,11 @@
 /* ── Progress bar ── */
 .assessment-progress-wrapper {
   margin-bottom: 2.5rem;
-  padding: 1.2rem 1.5rem;
+  padding: 1.2rem var(--space-6);
 }
 
+/* Suppress glass-card hover lift on the progress bar */
+.assessment-progress-wrapper.glass-card:hover,
 .assessment-progress-wrapper:hover {
   transform: none;
 }
@@ -74,10 +72,10 @@
 .progress-header {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   margin-bottom: 0.6rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   letter-spacing: 0.02em;
 }
 
@@ -89,49 +87,32 @@
   overflow: hidden;
 }
 
+/* Accessible: role="progressbar" should be set in JSX */
 .progress-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Slide Animations
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-18px) scale(0.97);
-  }
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-18px) scale(0.97); }
 }
 
-.slide-in {
-  animation: slideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
+.slide-in { animation: slideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+.slide-out { animation: slideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards; pointer-events: none; }
 
-.slide-out {
-  animation: slideOut 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
-  pointer-events: none;
-}
-
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Intro Screen (welcome step before Q1)
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 .conversation-intro {
   text-align: center;
   padding: 3.5rem 2.5rem;
@@ -148,10 +129,10 @@
 
 .intro-heading {
   font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ffffff 30%, var(--accent-secondary) 100%);
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-4);
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -161,7 +142,7 @@
   color: var(--text-secondary);
   font-size: 1.05rem;
   line-height: 1.75;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .intro-body-secondary {
@@ -170,9 +151,9 @@
   line-height: 1.6;
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Transition Card (shown briefly between questions)
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 @keyframes transitionFade {
   0%   { opacity: 0; transform: scale(0.96); }
   20%  { opacity: 1; transform: scale(1); }
@@ -182,43 +163,45 @@
 
 .conversation-transition {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--space-16) var(--space-8);
   animation: transitionFade 1.2s ease-in-out forwards;
 }
 
 .transition-text {
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 500;
+  font-size: var(--text-xl);
+  font-weight: var(--fw-medium);
   color: var(--accent-secondary);
   letter-spacing: -0.01em;
   line-height: 1.5;
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Question Card — Conversational Style
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 .conversation-card {
-  padding: 2.5rem 2rem;
+  padding: 2.5rem var(--space-8);
 }
 
+/* Suppress glass-card hover lift — questions should feel stable */
+.conversation-card.glass-card:hover,
 .conversation-card:hover {
-  transform: none; /* suppress glass-card hover lift on questions */
+  transform: none;
 }
 
 .conversation-kicker {
   color: var(--text-muted);
   font-size: 0.88rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   margin-bottom: 0.75rem;
   letter-spacing: 0.01em;
 }
 
 .question-text {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 2rem;
-  color: #fff;
+  font-size: var(--text-lg);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-8);
+  color: var(--text-primary);
   line-height: 1.55;
 }
 
@@ -232,14 +215,14 @@
 .option-button {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-glass);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.2rem 0.8rem;
   color: var(--text-secondary);
   cursor: pointer;
   transition: var(--transition-smooth);
   text-align: center;
   font-size: 0.92rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   display: flex;
   min-height: 72px;
   align-items: center;
@@ -248,6 +231,7 @@
   overflow: hidden;
 }
 
+/* Shimmer overlay — revealed on hover/select */
 .option-button::before {
   content: '';
   position: absolute;
@@ -264,27 +248,26 @@
   transform: translateY(-2px);
 }
 
-.option-button:hover::before {
-  opacity: 0.5;
+.option-button:hover::before { opacity: 0.5; }
+
+.option-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-lg);
 }
 
 .option-button.selected {
   background: linear-gradient(135deg, rgba(138, 43, 226, 0.22) 0%, rgba(0, 242, 254, 0.1) 100%);
   border-color: var(--accent-secondary);
-  color: #fff;
+  color: var(--text-primary);
   box-shadow: 0 0 20px rgba(0, 242, 254, 0.12), inset 0 0 30px rgba(0, 242, 254, 0.03);
   transform: translateY(-2px);
 }
 
-.option-button.selected::before {
-  opacity: 1;
-}
+.option-button.selected::before { opacity: 1; }
 
 /* ── Notes Step Extras ── */
-.notes-step-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
+.notes-step-icon { font-size: 2rem; margin-bottom: var(--space-2); }
 
 .gentle-note {
   color: var(--text-muted);
@@ -293,15 +276,15 @@
   line-height: 1.55;
 }
 
-/* ═══════════════════════════════════════════════════════
-   Footer Controls
-   ═══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   Footer Navigation Controls
+   ══════════════════════════════════════════════════════ */
 .assessment-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 2.5rem;
-  padding-top: 1.5rem;
+  padding-top: var(--space-6);
   border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -318,12 +301,12 @@
   box-shadow: none;
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Loading Dots
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 .conversation-loading {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--space-16) var(--space-8);
 }
 
 .conversation-loading p {
@@ -350,28 +333,17 @@
 
 @keyframes dotBounce {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
+  40%           { transform: scale(1); opacity: 1; }
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    Responsive — mobile first
-   ═══════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
-  .conversation-assessment {
-    padding-top: 1.5rem;
-  }
-
-  .conversation-intro {
-    padding: 2rem 1.2rem;
-  }
-
-  .intro-heading {
-    font-size: 1.6rem;
-  }
-
-  .question-text {
-    font-size: 1.1rem;
-  }
+  .conversation-assessment { padding-top: var(--space-6); }
+  .conversation-intro      { padding: var(--space-8) 1.2rem; }
+  .intro-heading           { font-size: var(--text-2xl); }
+  .question-text           { font-size: var(--text-md); }
 
   .options-grid {
     grid-template-columns: 1fr;

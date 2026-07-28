@@ -28,10 +28,7 @@
   min-height: 400px;
 }
 
-.select-dark {
-  background: var(--bg-tertiary) !important;
-  color: #fff;
-}
+/* .select-dark is defined in index.css as a shared utility. */
 
 .tech-desc {
   font-size: 0.9rem;
@@ -171,8 +168,24 @@
   .breathing-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .breathing-visual-card {
     min-height: 350px;
+  }
+}
+
+/* ── Reduced motion — disable breathing bubble transitions ── */
+@media (prefers-reduced-motion: reduce) {
+  .breathing-bubble {
+    transition: none;
+    animation: none;
+  }
+
+  .breathing-bubble.idle {
+    animation: none;
+  }
+
+  .breathing-bubble.hold-large {
+    animation: none;
   }
 }

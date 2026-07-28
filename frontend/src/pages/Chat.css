@@ -88,12 +88,18 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   transition: var(--transition-smooth);
+}
+
+.history-tab-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .history-tab-btn.active {
@@ -101,7 +107,8 @@
   background: rgba(138, 43, 226, 0.25);
 }
 
-.history-list {
+/* Renamed from .history-list to avoid collision with History.css */
+.chat-history-list {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -165,12 +172,19 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   cursor: pointer;
   padding: 0.2rem 0.4rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   opacity: 0;
   transition: var(--transition-smooth);
+}
+
+.dots-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  opacity: 1;
+  border-radius: var(--radius-sm);
 }
 
 .history-item:hover .dots-btn,
@@ -652,6 +666,11 @@
   box-shadow: 0 6px 18px rgba(138, 43, 226, 0.6);
 }
 
+.send-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .send-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -752,13 +771,22 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
+
+/* Tablet: narrow sidebar */
+@media (max-width: 1024px) {
+  .chat-sidebar {
+    width: 220px;
+  }
+}
+
+/* Mobile: hide sidebar entirely */
 @media (max-width: 768px) {
   .chat-sidebar {
     display: none;
   }
 
   .chat-messages {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .message-bubble {

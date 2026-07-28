@@ -93,14 +93,8 @@
   margin-bottom: 1rem;
 }
 
-.auth-success {
-  background: rgba(0, 230, 118, 0.1);
-  border: 1px solid rgba(0, 230, 118, 0.2);
-  color: var(--color-low);
-  padding: 0.8rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
+/* .auth-success is defined in index.css as a shared component.
+   Remove this duplicate to prevent specificity conflicts. */
 
 @media (max-width: 768px) {
   .profile-grid {

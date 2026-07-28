@@ -1,3 +1,12 @@
+/*
+ * Navbar.css — Top navigation bar
+ *
+ * Sticky glassmorphism header with brand, nav links, and auth controls.
+ * Mobile: stacks vertically below 768px.
+ * See index.css for design tokens.
+ */
+
+/* ── Outer container — sticky glass bar ── */
 .navbar-container {
   background: rgba(10, 11, 16, 0.7);
   backdrop-filter: blur(12px);
@@ -5,56 +14,64 @@
   border-bottom: 1px solid var(--border-glass);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--z-sticky);
   width: 100%;
 }
 
+/* ── Inner flex row ── */
 .navbar-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: var(--space-4) var(--space-6);
 }
 
+/* ── Brand / Logo ── */
 .navbar-brand {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: var(--fw-extrabold);
   font-size: 1.5rem;
-  color: #fff;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   letter-spacing: -0.03em;
   background: linear-gradient(135deg, #fff 30%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* Emoji logo resets the gradient fill so it renders in color */
 .brand-logo {
   -webkit-text-fill-color: initial;
 }
 
+/* ── Navigation links row ── */
 .navbar-links {
   display: flex;
   align-items: center;
   gap: 1.5rem;
 }
 
+/* ── Base nav link ── */
 .nav-link {
   color: var(--text-secondary);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: var(--fw-medium);
   transition: var(--transition-smooth);
   position: relative;
   padding: 0.25rem 0;
+  border-radius: var(--radius-sm);
 }
 
 .nav-link:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
+/* Active state — underline accent */
 .nav-link.active {
   color: var(--accent-secondary);
 }
@@ -68,27 +85,35 @@
   height: 2px;
   background: var(--accent-secondary);
   box-shadow: 0 0 8px var(--accent-secondary);
+  border-radius: 2px;
 }
 
-.admin-btn {
-  color: #a855f7;
+/* Focus ring for keyboard navigation */
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
-.admin-btn.active {
-  color: #c084fc;
-}
+
+/* ── Admin link variant ── */
+.admin-btn { color: #a855f7; }
+
+.admin-btn.active { color: #c084fc; }
+
 .admin-btn.active::after {
   background: #c084fc;
   box-shadow: 0 0 8px #c084fc;
 }
 
+/* ── Logout button ── */
 .logout-btn {
   background: transparent;
   color: var(--color-critical);
   border: 1px solid rgba(255, 23, 68, 0.3);
   padding: 0.4rem 1rem;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   cursor: pointer;
   transition: var(--transition-smooth);
 }
@@ -98,15 +123,22 @@
   border-color: var(--color-critical);
 }
 
+.logout-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 23, 68, 0.4);
+  border-radius: var(--radius-pill);
+}
+
+/* ── Register CTA button ── */
 .nav-btn-register {
   background: linear-gradient(135deg, var(--accent-primary) 0%, #a855f7 100%);
   color: #fff;
   padding: 0.5rem 1.2rem;
-  border-radius: 20px;
+  border-radius: var(--radius-pill);
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: var(--fw-semibold);
   transition: var(--transition-smooth);
-  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+  box-shadow: 0 4px 15px var(--accent-primary-glow);
 }
 
 .nav-btn-register:hover {
@@ -114,27 +146,37 @@
   box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
 }
 
+.nav-btn-register:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Crisis link — red urgent style ── */
 .crisis-nav-link {
-  color: var(--color-critical) !important;
-  font-weight: 600;
+  color: var(--color-critical);
+  font-weight: var(--fw-semibold);
 }
 
 .crisis-nav-link:hover {
   text-shadow: 0 0 8px rgba(255, 23, 68, 0.4);
 }
 
-.crisis-nav-link.active::after {
-  background: var(--color-critical) !important;
-  box-shadow: 0 0 8px var(--color-critical) !important;
+.nav-link.crisis-nav-link.active {
+  color: var(--color-critical);
 }
 
-/* AI Chat nav link — stands out with gradient glow */
+.nav-link.crisis-nav-link.active::after {
+  background: var(--color-critical);
+  box-shadow: 0 0 8px var(--color-critical);
+}
+
+/* ── AI Chat link — gradient glow style ── */
 .chat-nav-link {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 700 !important;
+  font-weight: var(--fw-bold);
   filter: drop-shadow(0 0 4px rgba(138, 43, 226, 0.4));
   transition: var(--transition-smooth);
 }
@@ -143,24 +185,25 @@
   filter: drop-shadow(0 0 8px rgba(138, 43, 226, 0.7));
 }
 
-.chat-nav-link.active {
+.nav-link.chat-nav-link.active {
   -webkit-text-fill-color: transparent;
 }
 
-.chat-nav-link.active::after {
+.nav-link.chat-nav-link.active::after {
   background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
   box-shadow: 0 0 8px var(--accent-primary);
 }
 
-/* Mobile responsive navigation styles */
+/* ── Mobile responsive ── */
 @media (max-width: 768px) {
   .navbar-inner {
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-4);
   }
+
   .navbar-links {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 1rem;
+    gap: var(--space-4);
   }
 }

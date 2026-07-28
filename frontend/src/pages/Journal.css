@@ -50,10 +50,8 @@
   line-height: 1.7;
 }
 
-.select-dark {
-  background: var(--bg-tertiary) !important;
-  color: #fff;
-}
+/* .select-dark is defined in index.css as a shared utility.
+   It applies to any .form-input.select-dark across the app. */
 
 /* ── Mood Tag Buttons in Form ── */
 .mood-tag-row {
@@ -76,6 +74,12 @@
 .mood-tag-btn:hover {
   transform: scale(1.15);
   background: rgba(255, 255, 255, 0.08);
+}
+
+.mood-tag-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .mood-tag-btn.selected {
@@ -106,7 +110,13 @@
 
 .filter-chip:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--text-primary);
+}
+
+.filter-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-pill);
 }
 
 .filter-chip.active {
@@ -196,6 +206,12 @@
 
 .read-more-btn:hover {
   text-shadow: 0 0 8px var(--accent-secondary-glow);
+}
+
+.read-more-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .journal-entry-actions {

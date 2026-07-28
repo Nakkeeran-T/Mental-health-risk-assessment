@@ -199,8 +199,6 @@ const Dashboard = () => {
           Take Risk Assessment
         </Link>
       </div>
-
-      {/* Assessment Reminder Banner */}
       {wellnessScore?.assessmentDue && (
         <div className="reminder-banner">
           <span className="reminder-icon">🔔</span>

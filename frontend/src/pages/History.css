@@ -1,28 +1,35 @@
+/*
+ * History.css — Assessment History page
+ *
+ * Displays the user's past assessments as a chronological list.
+ * NOTE: The list container was renamed from .history-list to
+ * .history-records-list to avoid a class collision with Chat.css.
+ */
+
 .history-container {
   max-width: 900px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
-.history-header {
-  margin-bottom: 1rem;
-}
+.history-header { margin-bottom: var(--space-4); }
 
 .history-subtitle {
   color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
-.history-list {
+/* ── Records list — renamed from .history-list ── */
+.history-records-list {
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
 }
 
 .history-item-card {
-  padding: 1.5rem 2rem;
+  padding: var(--space-6) var(--space-8);
   transition: var(--transition-smooth);
 }
 
@@ -36,25 +43,25 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: var(--space-6);
 }
 
 .history-item-info h3 {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #fff;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .history-item-date {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   color: var(--text-muted);
 }
 
 .history-item-stats {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--space-6);
 }
 
 .history-stat-box {
@@ -63,28 +70,30 @@
   align-items: center;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border-glass);
-  padding: 0.4rem 1rem;
-  border-radius: 8px;
+  padding: 0.4rem var(--space-4);
+  border-radius: var(--radius-sm);
   min-width: 70px;
 }
 
 .history-stat-label {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   text-transform: uppercase;
 }
 
 .history-stat-val {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--accent-secondary);
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .history-item-details {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .history-item-stats {
     width: 100%;
     justify-content: space-between;

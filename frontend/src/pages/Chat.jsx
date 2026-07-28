@@ -272,7 +272,7 @@ const ChatUI = () => {
             </button>
           </div>
 
-          <div className="history-list">
+          <div className="chat-history-list">
             {filteredSessions.length === 0 ? (
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.4rem 0' }}>
                 No {activeTab.toLowerCase()} chats.

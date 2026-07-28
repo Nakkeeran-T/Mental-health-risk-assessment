@@ -1,259 +1,287 @@
-/* ═══════════════════════════════════════════════════════
-   Dashboard Tour — Guided Walkthrough Styling
-   ═══════════════════════════════════════════════════════ */
+/*
+ * DashboardTour.css — Guided Walkthrough Overlay
+ *
+ * Renders a spotlight SVG mask + tooltip card that walks new users
+ * through the dashboard. Z-index lives at --z-tour (9000) to sit
+ * above all other stacking contexts.
+ *
+ * prefers-reduced-motion: all tour animations are disabled. The overlay
+ * and tooltip appear instantly so the UX still works for motion-sensitive
+ * users.
+ */
 
-/* ── Full-page overlay ── */
+/* ── Full-page overlay container ── */
 .tour-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9000;
-    animation: tourFadeIn 0.4s ease-out;
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tour);
+  animation: tourFadeIn 0.4s ease-out;
 }
 
 @keyframes tourFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-/* ── SVG mask (covers viewport as fixed overlay) ── */
+/* ── SVG spotlight mask — covers full viewport ── */
 .tour-svg-mask {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
 }
 
-/* Glowing border around spotlight */
+/* Pulsing glow border around the spotlighted element */
 .tour-spotlight-glow {
-    animation: spotlightPulse 2s ease-in-out infinite;
-    filter: drop-shadow(0 0 8px var(--accent-secondary));
+  animation: spotlightPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px var(--accent-secondary));
 }
 
 @keyframes spotlightPulse {
-
-    0%,
-    100% {
-        opacity: 0.7;
-    }
-
-    50% {
-        opacity: 1;
-    }
+  0%, 100% { opacity: 0.7; }
+  50%       { opacity: 1; }
 }
 
-/* ── Tooltip Card ── */
-.tour-tooltip {
-    position: fixed;
-    width: 360px;
-    max-width: calc(100vw - 32px);
-    z-index: 9010;
-    padding: 1.6rem 1.8rem 1.2rem;
-    animation: tourTooltipIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: auto;
-    border-color: rgba(0, 242, 254, 0.15) !important;
-    background: rgba(12, 14, 24, 0.92) !important;
-    backdrop-filter: blur(24px) !important;
+/* ── Tooltip Card ──
+   Uses higher specificity (.glass-card.tour-tooltip) instead of !important
+   to override the glass-card default padding/background.                 */
+.glass-card.tour-tooltip {
+  position: fixed;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  z-index: calc(var(--z-tour) + 10);
+  padding: 1.6rem 1.8rem 1.2rem;
+  animation: tourTooltipIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: auto;
+  border-color: rgba(0, 242, 254, 0.15);
+  background: rgba(12, 14, 24, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
-.tour-tooltip:hover {
-    transform: none !important;
-    /* prevent glass-card hover lift */
+/* Suppress the glass-card hover lift inside the tour */
+.glass-card.tour-tooltip:hover {
+  transform: none;
 }
 
 @keyframes tourTooltipIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px) scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ── Step dots ── */
+/* ── Step progress dots ── */
 .tour-dots {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    margin-bottom: 1rem;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: var(--space-4);
 }
 
 .tour-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    transition: all 0.3s ease;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  transition: var(--transition-smooth);
 }
 
 .tour-dot.active {
-    background: var(--accent-secondary);
-    box-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
-    transform: scale(1.3);
+  background: var(--accent-secondary);
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+  transform: scale(1.3);
 }
 
 .tour-dot.done {
-    background: var(--accent-primary);
+  background: var(--accent-primary);
 }
 
-/* ── Title & Body ── */
+/* ── Tooltip title & body text ── */
 .tour-title {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 700;
-    margin-bottom: 0.55rem;
-    color: #fff;
-    line-height: 1.35;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--fw-bold);
+  margin-bottom: 0.55rem;
+  color: var(--text-primary);
+  line-height: 1.35;
 }
 
 .tour-body {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin-bottom: 1.2rem;
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.2rem;
 }
 
-/* ── Controls ── */
+/* ── Navigation controls row ── */
 .tour-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .tour-nav-btns {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: var(--space-2);
 }
 
+/* Skip link */
 .tour-skip-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.4rem 0;
-    transition: color 0.2s ease;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color 0.2s ease;
+  border-radius: var(--radius-sm);
 }
 
 .tour-skip-btn:hover {
-    color: var(--text-secondary);
+  color: var(--text-secondary);
 }
 
+.tour-skip-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Back button */
 .tour-back-btn {
-    background: transparent;
-    border: 1px solid var(--border-glass);
-    color: var(--text-secondary);
-    padding: 0.45rem 1rem;
-    border-radius: 22px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-smooth);
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition: var(--transition-smooth);
 }
 
 .tour-back-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: var(--text-muted);
-    color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--text-muted);
+  color: var(--text-primary);
 }
 
+.tour-back-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-pill);
+}
+
+/* Next button */
 .tour-next-btn {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, #a855f7 100%);
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1.2rem;
-    border-radius: 22px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.35);
-    transition: var(--transition-smooth);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #a855f7 100%);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(138, 43, 226, 0.35);
+  transition: var(--transition-smooth);
 }
 
 .tour-next-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(138, 43, 226, 0.5);
 }
 
+.tour-next-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-pill);
+}
+
+/* Finish variant — teal gradient */
 .tour-finish-btn {
-    background: linear-gradient(135deg, #00c9a7 0%, var(--accent-secondary) 100%);
-    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+  background: linear-gradient(135deg, #00c9a7 0%, var(--accent-secondary) 100%);
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
 }
 
 .tour-finish-btn:hover {
-    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
 }
 
 /* ── Step counter ── */
 .tour-step-counter {
-    text-align: center;
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    margin-top: 0.8rem;
-    letter-spacing: 0.04em;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 0.8rem;
+  letter-spacing: 0.04em;
 }
 
-/* ── "Replay Tour" button on profile / settings ── */
+/* ── Replay Tour button (used on profile/settings page) ── */
 .tour-replay-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(0, 242, 254, 0.08);
-    border: 1px solid rgba(0, 242, 254, 0.2);
-    color: var(--accent-secondary);
-    padding: 0.7rem 1.4rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition-smooth);
-    margin-top: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  color: var(--accent-secondary);
+  padding: 0.7rem 1.4rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  margin-top: var(--space-4);
 }
 
 .tour-replay-btn:hover {
-    background: rgba(0, 242, 254, 0.14);
-    border-color: var(--accent-secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 242, 254, 0.2);
+  background: rgba(0, 242, 254, 0.14);
+  border-color: var(--accent-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 242, 254, 0.2);
+}
+
+.tour-replay-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-lg);
 }
 
 .tour-replay-btn .replay-icon {
-    font-size: 1.1rem;
+  font-size: 1.1rem;
 }
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
-    .tour-tooltip {
-        width: calc(100vw - 32px);
-        left: 16px !important;
-        padding: 1.2rem 1.3rem 1rem;
-    }
+  .glass-card.tour-tooltip {
+    width: calc(100vw - 32px);
+    left: 16px;
+    padding: 1.2rem 1.3rem 1rem;
+  }
 
-    .tour-title {
-        font-size: 1.05rem;
-    }
+  .tour-title { font-size: var(--text-md); }
+  .tour-body  { font-size: var(--text-sm); }
 
-    .tour-body {
-        font-size: 0.85rem;
-    }
+  .tour-controls {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
 
-    .tour-controls {
-        flex-direction: column-reverse;
-        gap: 0.6rem;
-    }
+  .tour-nav-btns {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
 
-    .tour-nav-btns {
-        width: 100%;
-        justify-content: flex-end;
-    }
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .tour-overlay,
+  .glass-card.tour-tooltip {
+    animation: none;
+  }
+
+  .tour-spotlight-glow {
+    animation: none;
+    opacity: 1;
+  }
 }
