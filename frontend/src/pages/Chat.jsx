@@ -396,7 +396,7 @@ const ChatUI = () => {
               <div className={`message-avatar ${msg.role}`}>
                 {msg.role === 'bot' ? '🤖' : '👤'}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="message-content">
                 <div className={`message-bubble ${msg.role} ${msg.isError ? 'error' : ''}`}>
                   {msg.content}
                 </div>
