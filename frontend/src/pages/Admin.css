@@ -75,7 +75,13 @@
 }
 
 .admin-tab-btn:hover {
-  color: #fff;
+  color: var(--text-primary);
+}
+
+.admin-tab-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
 }
 
 .admin-tab-btn.active {
@@ -125,7 +131,7 @@
 }
 
 .admin-table tr:hover td {
-  color: #fff;
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.01);
 }
 

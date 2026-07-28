@@ -63,7 +63,7 @@ const History = () => {
             </button>
           </div>
         ) : (
-          <div className="history-list">
+          <div className="history-records-list">
             {history.map((item) => (
               <div key={item.id} className="glass-card history-item-card">
                 <div className="history-item-details">

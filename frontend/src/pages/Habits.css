@@ -81,6 +81,12 @@
   box-shadow: 0 0 10px var(--accent-secondary-glow);
 }
 
+.habit-check-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 50%;
+}
+
 .habit-check-btn.checked {
   background: var(--color-low);
   border-color: var(--color-low);
