@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import com.example.demo.enums.AssessmentSource;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -20,4 +21,8 @@ public class AssessmentRequest {
     private List<AnswerRequest> answers;
 
     private String notes;
+
+    /** Optional — defaults to MANUAL if not provided */
+    private AssessmentSource source;
 }
+

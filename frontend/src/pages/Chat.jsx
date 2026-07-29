@@ -173,6 +173,8 @@ const ChatUI = () => {
     crisisDetected,
     sessionComplete,
     completedAssessment,
+    earlyEndWarning,
+    error,
     sendMessage,
     completeSession,
     resetSession,
@@ -234,6 +236,8 @@ const ChatUI = () => {
     if (activeTab === 'ARCHIVED') return s.status === 'ARCHIVED';
     return s.status !== 'ARCHIVED';
   });
+
+  const userMessageCount = messages.filter((m) => m.role === 'user').length;
 
 
 
@@ -375,9 +379,18 @@ const ChatUI = () => {
                 className="end-session-btn"
                 onClick={completeSession}
                 disabled={isTyping}
-                title="Generate your mental health assessment"
+                title={userMessageCount === 0
+                  ? 'Share how you feel first'
+                  : userMessageCount < 4
+                  ? `${userMessageCount} message(s) — more conversation = better accuracy`
+                  : 'Generate your mental health assessment'}
               >
                 📋 End Session & Get Analysis
+                {userMessageCount > 0 && userMessageCount < 8 && (
+                  <span style={{ fontSize: '0.7rem', opacity: 0.7, marginLeft: '0.4rem' }}>
+                    ({userMessageCount}/8 turns)
+                  </span>
+                )}
               </button>
             )}
             <button className="new-chat-btn" onClick={resetSession}>
@@ -385,6 +398,42 @@ const ChatUI = () => {
             </button>
           </div>
         </div>
+
+        {/* Early-end warning toast */}
+        {earlyEndWarning && (
+          <div style={{
+            background: 'rgba(251,191,36,0.12)',
+            border: '1px solid rgba(251,191,36,0.4)',
+            borderRadius: '10px',
+            padding: '0.7rem 1.2rem',
+            margin: '0.5rem 1.5rem 0',
+            color: '#fbbf24',
+            fontSize: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}>
+            ⚠️ Assessment generated from a short session — accuracy improves with more conversation turns.
+          </div>
+        )}
+
+        {/* Context error banner */}
+        {error && (
+          <div style={{
+            background: 'rgba(239,68,68,0.12)',
+            border: '1px solid rgba(239,68,68,0.4)',
+            borderRadius: '10px',
+            padding: '0.7rem 1.2rem',
+            margin: '0.5rem 1.5rem 0',
+            color: '#f87171',
+            fontSize: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}>
+            ❌ {error}
+          </div>
+        )}
 
         {/* Crisis banner */}
         {crisisDetected && <CrisisBanner />}

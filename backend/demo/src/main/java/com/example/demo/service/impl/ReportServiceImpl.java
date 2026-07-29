@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,8 +41,10 @@ public class ReportServiceImpl implements ReportService {
             throw new BadRequestException("Cannot generate report for an incomplete assessment");
         }
 
-        if (reportRepository.findByAssessmentId(assessmentId).isPresent()) {
-            throw new BadRequestException("A report has already been generated for this assessment");
+        // If a report already exists, return it instead of throwing an error
+        Optional<Report> existingReport = reportRepository.findByAssessmentId(assessmentId);
+        if (existingReport.isPresent()) {
+            return ReportResponse.from(existingReport.get());
         }
 
         String summary = buildSummary(assessment);
@@ -111,8 +114,14 @@ public class ReportServiceImpl implements ReportService {
 
         sb.append("=== Responses ===\n\n");
         assessment.getAnswers().forEach(answer -> {
-            sb.append(String.format("Q: %s%n", answer.getQuestion().getQuestionText()));
-            sb.append(String.format("   Score: %d / %d%n", answer.getScore(), answer.getQuestion().getMaxScore()));
+            // Question may be null for AI_CHAT assessments (signals-based answers)
+            if (answer.getQuestion() != null) {
+                sb.append(String.format("Q: %s%n", answer.getQuestion().getQuestionText()));
+                sb.append(String.format("   Score: %d / %d%n", answer.getScore(), answer.getQuestion().getMaxScore()));
+            } else {
+                sb.append(String.format("Q: Question #%d%n", answer.getId()));
+                sb.append(String.format("   Score: %d%n", answer.getScore()));
+            }
             if (answer.getResponseText() != null && !answer.getResponseText().isBlank()) {
                 sb.append(String.format("   Response: %s%n", answer.getResponseText()));
             }
