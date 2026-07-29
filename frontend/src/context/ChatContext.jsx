@@ -28,6 +28,7 @@ export const ChatProvider = ({ children }) => {
   const [sessionComplete, setSessionComplete] = useState(false);
   const [completedAssessment, setCompletedAssessment] = useState(null);
   const [error, setError] = useState(null);
+  const [earlyEndWarning, setEarlyEndWarning] = useState(false);
 
   // Fetch session list from backend
   const fetchSessions = useCallback(async () => {
@@ -202,19 +203,64 @@ export const ChatProvider = ({ children }) => {
     }
   }, [isTyping, sessionComplete, messages, buildHistory, sessionId, fetchSessions]);
 
+  // Build minimal fallback signals from conversation text when Gemini hasn't returned
+  // structured signals yet (e.g. user ended session very early or API key missing).
+  const buildFallbackSignals = useCallback((msgs) => {
+    const text = msgs
+      .filter((m) => m.role === 'user')
+      .map((m) => m.content.toLowerCase())
+      .join(' ');
+
+    let dep = 2, anx = 2, stress = 5, sleep = 7, appetite = 7, social = 7;
+    if (/sad|hopeless|depress|crying|empty|numb/.test(text)) dep += 5;
+    if (/anxious|panic|worry|nervous|scared/.test(text)) anx += 5;
+    if (/stress|overwhelm|pressure|burnout/.test(text)) stress += 2;
+    if (/can'?t sleep|insomnia|tired|exhausted|no energy/.test(text)) sleep -= 3;
+    if (/not eating|no appetite|skip meal/.test(text)) appetite -= 3;
+    if (/alone|isolated|lonely|withdrawn|no friends/.test(text)) social -= 3;
+
+    let risk = 'LOW';
+    if (dep > 15 || anx > 12) risk = 'HIGH';
+    else if (dep > 8 || anx > 7) risk = 'MODERATE';
+
+    return {
+      depressionScore: Math.min(27, dep),
+      anxietyScore: Math.min(21, anx),
+      stressLevel: Math.min(10, stress),
+      sleepQuality: Math.max(0, sleep),
+      appetiteLevel: Math.max(0, appetite),
+      socialEngagement: Math.max(0, social),
+      estimatedRiskLevel: risk,
+    };
+  }, []);
+
   const completeSession = useCallback(async () => {
-    if (!signals) return;
+    const userMessages = messages.filter((m) => m.role === 'user');
+
+    // Need at least 1 user message to generate any assessment
+    if (userMessages.length === 0) {
+      setError('Please share how you are feeling before ending the session.');
+      return;
+    }
+
+    // If signals aren’t ready yet, warn the user but continue with fallback
+    const effectiveSignals = signals || buildFallbackSignals(messages);
+    if (!signals) {
+      setEarlyEndWarning(true);
+      setTimeout(() => setEarlyEndWarning(false), 6000);
+    }
+
     setIsTyping(true);
+    setError(null);
     try {
-      const userMessages = messages.filter((m) => m.role === 'user');
       const summary = userMessages
-        .slice(-3)
+        .slice(-5)
         .map((m) => m.content)
         .join(' | ');
 
       const response = await api.post('/chat/complete', {
-        signals,
-        conversationSummary: summary,
+        signals: effectiveSignals,
+        conversationSummary: summary || 'Short chat session.',
       });
 
       setCompletedAssessment(response.data.data);
@@ -225,7 +271,7 @@ export const ChatProvider = ({ children }) => {
     } finally {
       setIsTyping(false);
     }
-  }, [signals, messages]);
+  }, [signals, messages, buildFallbackSignals]);
 
   const resetSession = useCallback(async () => {
     const newId = uuidv4();
@@ -244,6 +290,7 @@ export const ChatProvider = ({ children }) => {
     setSessionComplete(false);
     setCompletedAssessment(null);
     setError(null);
+    setEarlyEndWarning(false);
     fetchSessions();
   }, [fetchSessions]);
 
@@ -260,6 +307,7 @@ export const ChatProvider = ({ children }) => {
         sessionComplete,
         completedAssessment,
         error,
+        earlyEndWarning,
         sendMessage,
         completeSession,
         resetSession,

@@ -327,6 +327,7 @@ public class ChatService {
         AssessmentRequest assessmentRequest = AssessmentRequest.builder()
                 .answers(answers)
                 .notes(notes)
+                .source(com.example.demo.enums.AssessmentSource.AI_CHAT)
                 .build();
 
         return assessmentService.submitAssessment(userEmail, assessmentRequest);
