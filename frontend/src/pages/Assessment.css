@@ -213,11 +213,11 @@
 }
 
 .option-button {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   padding: 1.2rem 0.8rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition-smooth);
   text-align: center;

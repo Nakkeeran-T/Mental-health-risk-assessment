@@ -8,6 +8,18 @@
 		<version>3.4.13</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>me.paulschwarz</groupId>
+				<artifactId>spring-dotenv-bom</artifactId>
+				<version>5.1.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<groupId>com.example</groupId>
 	<artifactId>demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
@@ -85,11 +97,10 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Dotenv loader -->
+		<!-- Dotenv loader (Spring Boot 3 compatible) -->
 		<dependency>
 			<groupId>me.paulschwarz</groupId>
-			<artifactId>spring-dotenv</artifactId>
-			<version>4.0.0</version>
+			<artifactId>springboot3-dotenv</artifactId>
 		</dependency>
 
 		<!-- Testing Dependencies -->

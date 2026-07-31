@@ -66,6 +66,10 @@
   width: 320px;
   z-index: var(--z-dropdown);
   padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-premium);
   animation: dpSlideIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -89,7 +93,7 @@
 }
 
 .dp-nav-btn {
-  background: none;
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-glass);
   color: var(--text-secondary);
   width: 32px;
@@ -104,7 +108,7 @@
 }
 
 .dp-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-glass);
   border-color: var(--text-muted);
   color: var(--text-primary);
 }
@@ -186,7 +190,7 @@
 }
 
 .dp-cell:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-tertiary);
   color: var(--text-primary);
   border-color: var(--border-glass);
 }
@@ -204,7 +208,10 @@
 }
 
 /* Cells from adjacent months — visually dimmed */
-.dp-cell-outside { color: rgba(255, 255, 255, 0.15); }
+.dp-cell-outside {
+  color: var(--text-muted);
+  opacity: 0.45;
+}
 
 /* Today highlight */
 .dp-cell-today {
