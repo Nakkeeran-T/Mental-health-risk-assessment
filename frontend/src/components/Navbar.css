@@ -8,7 +8,7 @@
 
 /* ── Outer container — sticky glass bar ── */
 .navbar-container {
-  background: rgba(10, 11, 16, 0.7);
+  background: var(--bg-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-glass);
@@ -38,7 +38,7 @@
   align-items: center;
   gap: var(--space-2);
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #fff 30%, var(--accent-secondary) 100%);
+  background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
