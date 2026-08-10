@@ -70,6 +70,7 @@ const Sidebar = () => {
         <Link to="/dashboard" className="sidebar-brand" onClick={closeMobile}>
           <span className="sidebar-brand-logo">🧠</span>
           <span className="sidebar-brand-name">Aegis</span>
+          <span className="sidebar-brand-badge">AI LIVE</span>
         </Link>
 
         {/* Nav sections */}
