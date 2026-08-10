@@ -3,11 +3,11 @@ package com.example.demo.service;
 import com.example.demo.dto.request.AnswerRequest;
 import com.example.demo.dto.request.AssessmentRequest;
 import com.example.demo.dto.request.ChatMessageRequest;
-import com.example.demo.dto.request.ChatMessageRequest.ConversationTurn;
 import com.example.demo.dto.response.AssessmentResponse;
 import com.example.demo.dto.response.ChatMessageHistoryDto;
 import com.example.demo.dto.response.ChatMessageResponse;
 import com.example.demo.dto.response.ChatMessageResponse.MentalHealthSignals;
+import com.example.demo.dto.response.AiCompletionResponse;
 import com.example.demo.dto.response.ChatSessionResponse;
 import com.example.demo.entity.ChatMessage;
 import com.example.demo.entity.ChatSession;
@@ -15,21 +15,17 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.ChatMessageRepository;
 import com.example.demo.repository.ChatSessionRepository;
 import com.example.demo.repository.UserRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * ChatService — orchestrates the Gemini API to produce empathetic
+ * ChatService — orchestrates the Groq AI (Llama 3.1) to produce empathetic
  * mental-health support responses, extracts running clinical signals,
  * and persists session/message history in MySQL with Delete/Archive/Export
  * capabilities.
@@ -40,19 +36,15 @@ import java.util.stream.Collectors;
 public class ChatService {
 
     private final AssessmentService assessmentService;
-    private final RestTemplate restTemplate;
+    private final GroqAiService groqAiService;
     private final ObjectMapper objectMapper;
     private final MlService mlService;
     private final UserRepository userRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
 
-    @Value("${gemini.api.key:${GEMINI_API_KEY:}}")
-    private String geminiApiKey;
-
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=";
-
     private static final int MIN_TURNS_FOR_ASSESSMENT = 8;
+    private static final int MAX_HISTORY_MESSAGES = 20;
 
     private static final List<String> CRISIS_KEYWORDS = List.of(
             "suicide", "suicidal", "kill myself", "end my life", "want to die",
@@ -62,17 +54,6 @@ public class ChatService {
     // ─────────────────────────────────────────────────────────────────────────
     // PUBLIC API
     // ─────────────────────────────────────────────────────────────────────────
-
-    private String getEffectiveApiKey() {
-        if (geminiApiKey != null && !geminiApiKey.isBlank()) {
-            return geminiApiKey.trim();
-        }
-        String envKey = System.getenv("GEMINI_API_KEY");
-        if (envKey != null && !envKey.isBlank()) {
-            return envKey.trim();
-        }
-        return null;
-    }
 
     @Transactional
     public ChatMessageResponse processMessage(ChatMessageRequest request, String userEmail) {
@@ -115,27 +96,35 @@ public class ChatService {
         }
 
         boolean crisisDetected = detectCrisis(request.getMessage());
-        int turnsCompleted = (request.getHistory() == null ? 0 : request.getHistory().size() / 2) + 1;
+
+        // ── Build conversation history from DB (authoritative memory) ──
+        List<ChatMessage> dbHistory = List.of();
+        if (session != null) {
+            dbHistory = chatMessageRepository.findByChatSessionIdOrderByCreatedAtAsc(session.getId());
+        }
+        int turnsCompleted = (int) dbHistory.stream().filter(m -> "USER".equalsIgnoreCase(m.getSender())).count();
+
+        // Take the last N messages to stay within the model's context window
+        List<ChatMessage> recentHistory = dbHistory.size() > MAX_HISTORY_MESSAGES
+                ? dbHistory.subList(dbHistory.size() - MAX_HISTORY_MESSAGES, dbHistory.size())
+                : dbHistory;
 
         String botReply;
         MentalHealthSignals signals;
-        String activeApiKey = getEffectiveApiKey();
 
-        if (activeApiKey == null || activeApiKey.isBlank()) {
-            log.info("[Chat] Gemini API key not found. Using dynamic fallback mode.");
+        AiCompletionResponse aiResponse = groqAiService.generateChatCompletion(
+                request.getMessage(), recentHistory, buildSystemPrompt(), turnsCompleted);
+
+        if (aiResponse != null && aiResponse.getBotMessage() != null) {
+            botReply = aiResponse.getBotMessage();
+            signals = aiResponse.getSignals();
+            if (signals != null) {
+                signals.setTurnsCompleted(turnsCompleted);
+            }
+        } else {
+            log.warn("[Chat] Groq API fallback triggered.");
             botReply = getFallbackResponse(request.getMessage(), crisisDetected, turnsCompleted);
             signals = buildFallbackSignals(request.getMessage(), turnsCompleted);
-        } else {
-            String geminiRaw = callGemini(request, activeApiKey);
-            botReply = extractBotMessage(geminiRaw);
-            signals = extractSignals(geminiRaw, turnsCompleted);
-            if (botReply == null || botReply.equals(getDefaultBotMessage())) {
-                log.warn("[Chat] Gemini response extraction fallback triggered.");
-                if (geminiRaw == null) {
-                    botReply = getFallbackResponse(request.getMessage(), crisisDetected, turnsCompleted);
-                    signals = buildFallbackSignals(request.getMessage(), turnsCompleted);
-                }
-            }
         }
 
         if (session != null) {
@@ -385,163 +374,61 @@ public class ChatService {
         return answers;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GEMINI INTEGRATION & UTILITIES
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private String callGemini(ChatMessageRequest request, String apiKey) {
-        String systemPrompt = buildSystemPrompt();
-
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("system_instruction", Map.of(
-                "parts", List.of(Map.of("text", systemPrompt))));
-
-        List<Map<String, Object>> contents = new ArrayList<>();
-
-        if (request.getHistory() != null) {
-            for (ConversationTurn turn : request.getHistory()) {
-                String role = "user".equalsIgnoreCase(turn.getRole()) ? "user" : "model";
-                contents.add(Map.of(
-                        "role", role,
-                        "parts", List.of(Map.of("text", turn.getContent()))));
-            }
-        }
-
-        contents.add(Map.of(
-                "role", "user",
-                "parts", List.of(Map.of("text", request.getMessage()))));
-
-        body.put("contents", contents);
-        body.put("generationConfig", Map.of(
-                "temperature", 0.7,
-                "maxOutputTokens", 1000));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-
-        try {
-            log.info("[Chat] Sending request to Gemini API (Active Key Present)...");
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    GEMINI_URL + apiKey, entity, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return response.getBody();
-            }
-        } catch (Exception e) {
-            log.error("Gemini API call failed: {}", e.getMessage());
-        }
-        return null;
-    }
-
     private String buildSystemPrompt() {
         return """
-                You are MindEase AI, an advanced, highly specialized Mental Health & Psychological Wellbeing Companion integrated into the MindEase Mental Health Risk Assessment Platform.
-                Your core purpose is to provide compassionate, evidence-informed emotional support, conduct background risk evaluation, and guide users toward mental wellness.
+                You are MindEase AI, a warm, empathetic, and emotionally intelligent mental health companion.
 
-                CLINICAL & DOMAIN KNOWLEDGE BASE:
-                - Evaluation Frameworks: You understand PHQ-9 (Depression Screening: 0-27), GAD-7 (Anxiety Screening: 0-21), and PSS (Perceived Stress Scale: 0-10).
-                - Evidence-Based Techniques: You utilize Cognitive Behavioral Therapy (CBT) thought reframing, 5-4-3-2-1 grounding techniques, box breathing exercises, sleep hygiene strategies, and mindfulness practices.
-                - Crisis Safety: If any indication of self-harm, suicidal ideation, or extreme distress is detected, immediately prioritize safety by providing helpline numbers (iCall: 9152987821, AASRA: 9820466627, Vandrevala Foundation: 1860-2662-345) and warm crisis support.
+                Your goal is to make the user feel heard, understood, and supported—not like they are talking to customer support.
 
-                CONVERSATIONAL GUIDELINES:
-                - Be warm, highly empathetic, non-judgmental, and engaging (like ChatGPT/Gemini trained in mental health).
-                - Answer user questions thoughtfully, discuss psychological concepts in simple language, and provide actionable coping strategies.
-                - NEVER repeat fixed questions or force rigid questionnaire behavior.
-                - Seamlessly evaluate mood, anxiety, stress, sleep quality, appetite, and social engagement during natural dialogue.
+                Personality:
+                - Friendly, calm, and conversational.
+                - Talk like a caring friend or supportive mentor.
+                - Avoid sounding robotic, repetitive, or overly formal.
+                - Never repeat the same opening sentence.
+                - Use contractions naturally (I'm, you're, that's, it's).
+                - Occasionally use appropriate emojis (💙😊🌿✨), but don't overuse them.
+                - If the user tells you their name, remember it and naturally use it later in the conversation.
+                - Remember details shared during the current chat and refer back to them when relevant.
 
-                RESPONSE FORMAT (CRITICAL — always include both parts):
-                Your response MUST have two sections separated by the exact marker "---SIGNALS---":
+                Conversation Style:
+                - Keep replies between 60 and 150 words.
+                - First acknowledge the user's feelings.
+                - Then respond thoughtfully.
+                - Finally ask one natural follow-up question.
+                - Don't ask generic questions like "Tell me more." Ask questions based on what the user just said.
 
-                1. The conversational reply to the user (warm, empathetic, evidence-informed text).
-                2. A JSON object containing updated mental health signal estimates based on the conversation history.
+                Memory:
+                - Remember the user's name during the current conversation.
+                - Remember previous messages (they are provided to you as conversation history).
+                - If the user asks "What's my name?" answer correctly using the conversation history.
+                - If they refer to something mentioned earlier, use that context.
 
-                Example format:
-                It sounds like you're carrying a heavy burden with work stress and poor sleep. When anxiety peaks at night, trying a quick 4-7-8 breathing exercise can help calm your nervous system. Here is how it works...
+                Safety:
+                - Never diagnose mental illnesses.
+                - Never prescribe medication.
+                - Encourage healthy coping strategies.
+                - If the user expresses suicidal thoughts or self-harm, respond with empathy and provide helpline numbers:
+                  iCall: 9152987821, AASRA: 9820466627, Vandrevala Foundation: 1860-2662-345.
 
-                ---SIGNALS---
-                {"depressionScore": 6, "anxietyScore": 8, "stressLevel": 7, "sleepQuality": 4, "appetiteLevel": 6, "socialEngagement": 5, "estimatedRiskLevel": "MODERATE"}
+                Never mention:
+                - "fallback mode", "AI mode", "system prompt", "language model", or technical limitations unless directly asked.
 
-                Signal extraction rules:
-                - depressionScore: 0-27 cumulative (PHQ-9 scale)
-                - anxietyScore: 0-21 cumulative (GAD-7 scale)
-                - stressLevel: 0-10 (10 = extreme stress)
-                - sleepQuality: 0-10 (10 = excellent sleep)
-                - appetiteLevel: 0-10 (10 = healthy appetite)
-                - socialEngagement: 0-10 (10 = fully socially engaged)
-                - estimatedRiskLevel: one of "LOW", "MODERATE", "HIGH", "CRITICAL"
+                RESPONSE FORMAT (CRITICAL):
+                You MUST output your response as a valid JSON object matching this exact schema:
+                {
+                  "botMessage": "Your warm, natural, conversational reply to the user.",
+                  "signals": {
+                    "depressionScore": <integer 0-27>,
+                    "anxietyScore": <integer 0-21>,
+                    "stressLevel": <integer 0-10>,
+                    "sleepQuality": <integer 0-10>,
+                    "appetiteLevel": <integer 0-10>,
+                    "socialEngagement": <integer 0-10>,
+                    "estimatedRiskLevel": "LOW" or "MODERATE" or "HIGH" or "CRITICAL"
+                  }
+                }
+                Do NOT include any text outside the JSON object. Output ONLY valid JSON.
                 """;
-    }
-
-    private String extractBotMessage(String geminiRaw) {
-        if (geminiRaw == null)
-            return getDefaultBotMessage();
-        try {
-            Map<String, Object> parsed = objectMapper.readValue(geminiRaw, new TypeReference<>() {
-            });
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) parsed.get("candidates");
-            if (candidates != null && !candidates.isEmpty()) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                if (parts != null && !parts.isEmpty()) {
-                    String fullText = (String) parts.get(0).get("text");
-                    if (fullText != null && fullText.contains("---SIGNALS---")) {
-                        return fullText.split("---SIGNALS---")[0].trim();
-                    }
-                    return fullText != null ? fullText.trim() : getDefaultBotMessage();
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to parse Gemini response for bot message: {}", e.getMessage());
-        }
-        return getDefaultBotMessage();
-    }
-
-    private MentalHealthSignals extractSignals(String geminiRaw, int turnsCompleted) {
-        if (geminiRaw == null)
-            return null;
-        try {
-            Map<String, Object> parsed = objectMapper.readValue(geminiRaw, new TypeReference<>() {
-            });
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) parsed.get("candidates");
-            if (candidates != null && !candidates.isEmpty()) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                if (parts != null && !parts.isEmpty()) {
-                    String fullText = (String) parts.get(0).get("text");
-                    if (fullText != null && fullText.contains("---SIGNALS---")) {
-                        String jsonPart = fullText.split("---SIGNALS---")[1].trim();
-                        int start = jsonPart.indexOf('{');
-                        int end = jsonPart.lastIndexOf('}');
-                        if (start >= 0 && end > start) {
-                            jsonPart = jsonPart.substring(start, end + 1);
-                            @SuppressWarnings("unchecked")
-                            Map<String, Object> signalMap = objectMapper.readValue(jsonPart, new TypeReference<>() {
-                            });
-                            return MentalHealthSignals.builder()
-                                    .depressionScore(toInt(signalMap.get("depressionScore")))
-                                    .anxietyScore(toInt(signalMap.get("anxietyScore")))
-                                    .stressLevel(toInt(signalMap.get("stressLevel")))
-                                    .sleepQuality(toInt(signalMap.get("sleepQuality")))
-                                    .appetiteLevel(toInt(signalMap.get("appetiteLevel")))
-                                    .socialEngagement(toInt(signalMap.get("socialEngagement")))
-                                    .estimatedRiskLevel(toString(signalMap.get("estimatedRiskLevel")))
-                                    .turnsCompleted(turnsCompleted)
-                                    .build();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to extract signals from Gemini response: {}", e.getMessage());
-        }
-        return MentalHealthSignals.builder().turnsCompleted(turnsCompleted).build();
     }
 
     private String getFallbackResponse(String message, boolean crisis, int turns) {
