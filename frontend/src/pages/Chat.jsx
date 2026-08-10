@@ -486,7 +486,7 @@ const ChatUI = () => {
             </button>
           </div>
           <div className="input-hint">
-            🔒 Private & Confidential &nbsp;·&nbsp; Powered by Google Gemini AI
+            🔒 Private & Confidential &nbsp;·&nbsp; Powered by Aegis AI
           </div>
         </div>
       </div>
