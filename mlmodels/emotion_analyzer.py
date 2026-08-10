@@ -34,7 +34,7 @@ def _load_hf_pipeline():
         _pipeline = hf_pipeline(
             "text-classification",
             model=HF_MODEL,
-            return_all_scores=True,
+            top_k=None,
             truncation=True,
             max_length=512,
         )

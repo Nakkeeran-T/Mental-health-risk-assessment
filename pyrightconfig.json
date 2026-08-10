@@ -1,0 +1,8 @@
+{
+  "venvPath": "mlmodels",
+  "venv": "venv",
+  "extraPaths": [
+    "mlmodels",
+    "mlmodels/venv/Lib/site-packages"
+  ]
+}

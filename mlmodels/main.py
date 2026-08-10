@@ -196,3 +196,10 @@ def mood_forecast(request: MoodForecastRequest):
         return forecast_mood(request.scores)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Mood forecast failed: {e}")
+
+
+# ── Server Runner ─────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

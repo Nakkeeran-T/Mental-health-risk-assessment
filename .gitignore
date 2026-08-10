@@ -58,4 +58,27 @@ __pycache__/
 venv/
 ENV/
 env/
+.coverage
+htmlcov/
+
+### OS & System Files ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
+
+### Logs & Agent Caches ###
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.gemini/
+
 
