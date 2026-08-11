@@ -28,7 +28,8 @@ const Register = () => {
     }
 
     setSubmitting(true);
-    const result = await register(firstName, lastName, email, password, dateOfBirth);
+    const cleanEmail = email.trim().toLowerCase();
+    const result = await register(firstName, lastName, cleanEmail, password, dateOfBirth);
     setSubmitting(false);
 
     if (result.success) {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
-import axios from 'axios';
 import {
   PieChart,
   Pie,
@@ -88,14 +87,17 @@ const Admin = () => {
       console.error('Backend ping failed', e);
     }
 
-    // 2. Check Python FastAPI ML Service Liveness
+    // 2. Check Python FastAPI ML Service Liveness (via backend proxy — works on mobile too)
     const t1 = performance.now();
     let mlStatus = 'OFFLINE';
     let mlLatency = null;
     try {
-      await axios.get('http://localhost:8000/health', { timeout: 3000 });
-      mlStatus = 'ONLINE';
-      mlLatency = Math.round(performance.now() - t1);
+      const mlRes = await api.get('/admin/ml-health', { timeout: 4000 });
+      const status = mlRes.data?.data?.status;
+      if (status === 'ONLINE') {
+        mlStatus = 'ONLINE';
+        mlLatency = Math.round(performance.now() - t1);
+      }
     } catch (e) {
       console.error('ML microservice ping failed', e);
     }

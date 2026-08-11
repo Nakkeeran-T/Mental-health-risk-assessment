@@ -7,12 +7,18 @@
 }
 
 .habits-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.habits-header h1 {
+  color: var(--text-primary, #0f172a);
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .habits-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
+  color: var(--text-secondary, #334155);
+  font-size: 1.05rem;
 }
 
 .habits-layout {
@@ -23,6 +29,40 @@
 
 .habits-form-card {
   height: fit-content;
+  background: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-glass, #e2e8f0);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.habits-form-card h3 {
+  color: var(--text-primary, #0f172a);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.habits-form-card input.form-input,
+.habits-form-card textarea.form-input {
+  color: var(--text-primary, #0f172a) !important;
+  background: var(--bg-tertiary, #f1f5f9) !important;
+  border: 1px solid var(--border-glass, #cbd5e1) !important;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.habits-form-card input.form-input:focus,
+.habits-form-card textarea.form-input:focus {
+  background: #ffffff !important;
+  border-color: var(--accent-primary, #4f46e5) !important;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.habits-form-card input.form-input::placeholder,
+.habits-form-card textarea.form-input::placeholder {
+  color: var(--text-muted, #64748b) !important;
+  opacity: 0.9;
 }
 
 .habits-list-column {
@@ -41,17 +81,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem 1.8rem;
+  padding: 1.2rem 1.5rem;
+  background: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border-glass, #e2e8f0);
+  border-radius: 14px;
   transition: var(--transition-smooth);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 .habit-item:hover {
-  transform: translateX(2px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
 .habit-item.completed {
-  border-color: rgba(0, 230, 118, 0.25);
-  background: rgba(0, 230, 118, 0.03);
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.04);
 }
 
 .habit-checkbox-wrapper {
@@ -61,14 +106,14 @@
 }
 
 .habit-check-btn {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 2px solid var(--border-glass);
-  background: transparent;
-  color: #fff;
+  border: 2px solid var(--border-glass, #cbd5e1);
+  background: #ffffff;
+  color: var(--color-low, #10b981);
   font-weight: bold;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -77,36 +122,31 @@
 }
 
 .habit-check-btn:hover {
-  border-color: var(--accent-secondary);
-  box-shadow: 0 0 10px var(--accent-secondary-glow);
-}
-
-.habit-check-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: 50%;
+  border-color: var(--accent-primary, #4f46e5);
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
 }
 
 .habit-check-btn.checked {
-  background: var(--color-low);
-  border-color: var(--color-low);
-  box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
+  background: var(--color-low, #10b981);
+  border-color: var(--color-low, #10b981);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
 }
 
 .habit-info h4 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary, #0f172a);
 }
 
 .habit-item.completed .habit-info h4 {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--text-muted, #64748b);
 }
 
 .habit-info p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  font-size: 0.88rem;
+  color: var(--text-secondary, #334155);
   margin-top: 0.2rem;
 }
 
@@ -119,11 +159,11 @@
 .streak-badge-fire {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #ffa726;
-  background: rgba(255, 167, 38, 0.1);
-  padding: 0.3rem 0.8rem;
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  padding: 0.35rem 0.85rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 167, 38, 0.2);
+  border: 1px solid rgba(217, 119, 6, 0.25);
 }
 
 .btn-delete {
@@ -131,7 +171,7 @@
   border: none;
   cursor: pointer;
   font-size: 1.1rem;
-  opacity: 0.5;
+  opacity: 0.6;
   transition: var(--transition-smooth);
 }
 

@@ -5,11 +5,13 @@ import com.example.demo.dto.response.AssessmentResponse;
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.enums.Role;
 import com.example.demo.service.AssessmentService;
+import com.example.demo.service.MlService;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,7 @@ public class AdminController {
 
     private final UserService userService;
     private final AssessmentService assessmentService;
+    private final MlService mlService;
 
     /**
      * GET /api/admin/users
@@ -88,6 +91,27 @@ public class AdminController {
     @Operation(summary = "Get all assessments (Admin only)")
     public ResponseEntity<ApiResponse<List<AssessmentResponse>>> getAllAssessments() {
         return ResponseEntity.ok(ApiResponse.success(assessmentService.getAllAssessments()));
+    }
+
+    /**
+     * GET /api/admin/ml-health
+     * Proxy the FastAPI ML microservice liveness check so mobile browsers
+     * do NOT need to call localhost:8000 directly.
+     */
+    @GetMapping("/ml-health")
+    @Operation(summary = "Proxy ML microservice health check (Admin only)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getMlHealth() {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            boolean healthy = mlService.checkHealth();
+            result.put("status", healthy ? "ONLINE" : "OFFLINE");
+            return ResponseEntity.ok(ApiResponse.success(result));
+        } catch (Exception e) {
+            result.put("status", "OFFLINE");
+            result.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(ApiResponse.success(result));
+        }
     }
 
     /** GET /api/admin/stats */

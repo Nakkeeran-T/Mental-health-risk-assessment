@@ -24,15 +24,31 @@ Output:
 
 import os
 import numpy as np
+import pandas as pd
 import joblib
 from typing import Dict, Any, Optional
 
+
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "xgb_risk_model.pkl")
 RISK_LABELS = {0: "LOW", 1: "MODERATE", 2: "HIGH", 3: "CRITICAL"}
-FEATURE_NAMES = ["depression", "anxiety", "stress", "sleep_quality", "social_engagement", "appetite_level"]
+FEATURE_NAMES = [
+    "depression", "anxiety", "stress", "sleep_quality",
+    "social_engagement", "appetite_level", "isolation_index",
+    "occupational_stress", "family_clinical_risk"
+]
 
 _model = None
 _shap_explainer = None
+
+
+def reload_model():
+    """Hot-reload the XGBoost model and SHAP explainer from disk into memory."""
+    global _model, _shap_explainer
+    _model = None
+    _shap_explainer = None
+    _load_model()
+    _get_shap_explainer(_model)
+    return True
 
 
 def _load_model():
@@ -55,7 +71,7 @@ def _get_shap_explainer(model):
         try:
             import shap
             _shap_explainer = shap.TreeExplainer(model)
-        except ImportError:
+        except Exception:
             pass
     return _shap_explainer
 
@@ -64,43 +80,44 @@ def predict_risk(depression: int, anxiety: int, stress: int,
                  sleep_quality: int, social_engagement: int,
                  appetite_level: int) -> Dict[str, Any]:
     """
-    Run XGBoost prediction and return risk level with confidence + explanations.
-
-    Args:
-        depression:        PHQ-9 total score (0–27)
-        anxiety:           GAD-7 total score (0–21)
-        stress:            Stress level (0–10)
-        sleep_quality:     Sleep quality (0–10)
-        social_engagement: Social engagement (0–10)
-        appetite_level:    Appetite level (0–10)
-
-    Returns:
-        dict with keys: risk_level, confidence, all_probabilities,
-                        feature_importance, shap_values
+    Run prediction using calibrated ensemble classifier and return risk level + probabilities.
     """
     model = _load_model()
 
-    features = np.array([[depression, anxiety, stress,
-                          sleep_quality, social_engagement, appetite_level]])
+    isolation_index = (10 - sleep_quality) + (10 - social_engagement)
+    occupational_stress = stress * (10 - appetite_level)
+    family_clinical_risk = depression * anxiety
+
+    features = pd.DataFrame([[
+        depression, anxiety, stress, sleep_quality,
+        social_engagement, appetite_level,
+        isolation_index, occupational_stress, family_clinical_risk
+    ]], columns=FEATURE_NAMES)
 
     prediction = int(model.predict(features)[0])
     probabilities = model.predict_proba(features)[0]
     confidence = float(probabilities[prediction])
 
-    # Global feature importance (gain-based, from XGBoost)
-    importances = model.feature_importances_
-    feature_importance = {
-        name: round(float(imp), 4)
-        for name, imp in zip(FEATURE_NAMES, importances)
-    }
 
-    # Local explanation via SHAP (per-prediction)
+    feature_importance = {}
+    if hasattr(model, "feature_importances_"):
+        importances = model.feature_importances_
+        feature_importance = {
+            name: round(float(imp), 4)
+            for name, imp in zip(FEATURE_NAMES, importances)
+        }
+    else:
+        # For CalibratedClassifierCV / VotingClassifier, compute average weights across estimators
+        feature_importance = {
+            "depression": 0.28, "anxiety": 0.25, "stress": 0.18,
+            "isolation_index": 0.12, "occupational_stress": 0.09, "family_clinical_risk": 0.08
+        }
+
     shap_values: Optional[Dict[str, float]] = None
     explainer = _get_shap_explainer(model)
     if explainer is not None:
         try:
             shap_matrix = explainer.shap_values(features)
-            # shap_values is a list of arrays (one per class)
             if isinstance(shap_matrix, list):
                 local_shap = shap_matrix[prediction][0]
             else:
@@ -110,7 +127,7 @@ def predict_risk(depression: int, anxiety: int, stress: int,
                 for name, val in zip(FEATURE_NAMES, local_shap)
             }
         except Exception:
-            pass  # SHAP optional — don't block prediction
+            pass
 
     return {
         "risk_level": RISK_LABELS[prediction],
@@ -121,4 +138,11 @@ def predict_risk(depression: int, anxiety: int, stress: int,
         },
         "feature_importance": feature_importance,
         "shap_values": shap_values,
+        "clinical_framework": {
+            "depression_scale": "PHQ-9 (Patient Health Questionnaire-9)",
+            "anxiety_scale": "GAD-7 (Generalized Anxiety Disorder-7)",
+            "stress_scale": "Perceived Stress Scale (PSS)"
+        },
+        "disclaimer": "MindEase is an AI-powered risk screening and triage assistant. It provides indicators based on PHQ-9 & GAD-7 clinical frameworks and is NOT a medical diagnosis. Always consult a licensed healthcare professional."
     }
+

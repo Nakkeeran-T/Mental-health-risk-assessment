@@ -10,3 +10,5 @@ pandas==2.2.2
 joblib==1.4.2
 nltk==3.8.1
 pydantic==2.7.4
+imbalanced-learn==0.12.3
+

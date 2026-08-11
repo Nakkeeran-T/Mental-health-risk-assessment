@@ -184,7 +184,28 @@ public class MlService {
         }
     }
 
+    // ── Health Check Proxy ────────────────────────────────────────────────────
+
+    /**
+     * Pings the FastAPI ML microservice liveness endpoint.
+     * Called by AdminController to avoid mobile browsers needing direct localhost:8000 access.
+     *
+     * @return true if the ML service responded with HTTP 200, false otherwise
+     */
+    public boolean checkHealth() {
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(
+                    mlServiceUrl + "/health", String.class
+            );
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            log.warn("[MlService] Health check failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
     // ── Internal HTTP helper ──────────────────────────────────────────────────
+
 
     private ResponseEntity<String> post(String endpoint, Object body) {
         try {

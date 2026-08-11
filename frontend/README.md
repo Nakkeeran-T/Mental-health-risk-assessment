@@ -1,16 +1,22 @@
-# React + Vite
+# MindEase - Frontend React Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern, responsive web dashboard and mental health assessment application built with React, Vite, and CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 📋 **Assessment Questionnaire**: Interactive PHQ-9 (Depression), GAD-7 (Anxiety), and lifestyle risk evaluations.
+- 📊 **Real-Time Dashboard**: Visual wellness tracking, emotion breakdown, and trend analysis.
+- 🤖 **AI Chatbot & Support**: Conversational guidance and instant crisis response resources.
+- 📈 **Results Breakdown**: Clear risk level badging, confidence score indicators, and actionable recommendations.
 
-## React Compiler
+## Setup & Running
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# 1. Install dependencies
+npm install
 
-## Expanding the ESLint configuration
+# 2. Run local development server
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The application runs locally at `http://localhost:5173`.

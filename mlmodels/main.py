@@ -16,7 +16,7 @@ Interactive docs:
     http://localhost:8000/docs
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
@@ -29,9 +29,10 @@ app = FastAPI(
         "XGBoost-powered mental health risk assessment microservice.\n\n"
         "Algorithm: XGBoost Gradient Boosting Classifier (risk prediction) + "
         "HuggingFace Transformers (emotion analysis) + "
-        "OLS Linear Regression (mood forecasting)."
+        "OLS Linear Regression (mood forecasting) + "
+        "Real-Time Online Model Retraining."
     ),
-    version="1.0.0",
+    version="1.1.0",
 )
 
 app.add_middleware(
@@ -91,6 +92,19 @@ class MoodForecastRequest(BaseModel):
         }
 
 
+class RetrainRequest(BaseModel):
+    dataset_path: Optional[str] = Field(None, description="Path to CSV dataset file (defaults to Mental Health Dataset.csv)")
+    use_real_data: bool = Field(True, description="Whether to use real dataset (True) or synthetic data generator (False)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "dataset_path": None,
+                "use_real_data": True
+            }
+        }
+
+
 # ── Health Check ──────────────────────────────────────────────────────────────
 
 @app.get("/health", tags=["System"])
@@ -99,9 +113,10 @@ def health():
     return {
         "status": "ok",
         "service": "MindEase ML API",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "algorithms": {
             "risk_classification": "XGBoost Gradient Boosting Classifier",
+            "real_time_retraining": "On-demand real-time model retraining & hot-reload",
             "emotion_analysis":    "HuggingFace cardiffnlp/twitter-roberta-base-emotion (+ VADER fallback)",
             "mood_forecasting":    "OLS Linear Regression",
         },
@@ -146,7 +161,41 @@ def risk_predict(request: RiskPredictRequest):
         raise HTTPException(status_code=500, detail=f"Risk prediction failed: {e}")
 
 
-# ── Endpoint 2: NLP Emotion Analysis ─────────────────────────────────────────
+# ── Endpoint 2: Real-Time Model Retraining ────────────────────────────────────
+
+@app.post(
+    "/ml/retrain",
+    tags=["Model Retraining"],
+    summary="Trigger real-time XGBoost model retraining and hot-reload",
+    response_description=(
+        "Training status, dataset source, total samples trained, test accuracy, "
+        "training time in seconds, classification report, and hot-reload confirmation."
+    ),
+)
+def retrain_model_endpoint(request: RetrainRequest = RetrainRequest()):
+    """
+    **Real-Time XGBoost Retraining & Hot-Reload**
+
+    Retrains the mental health risk XGBoost model on demand using the real dataset,
+    saves the model binary, and hot-reloads the active in-memory classifier model
+    without interrupting the running FastAPI server.
+    """
+    try:
+        from train_risk_model import train_model
+        from risk_classifier import reload_model
+
+        metrics = train_model(
+            dataset_path=request.dataset_path,
+            use_real_data=request.use_real_data
+        )
+        reload_model()
+        metrics["hot_reloaded"] = True
+        return metrics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Model retraining failed: {e}")
+
+
+# ── Endpoint 3: NLP Emotion Analysis ─────────────────────────────────────────
 
 @app.post(
     "/ml/emotion-analyze",
@@ -172,7 +221,7 @@ def emotion_analyze(request: EmotionAnalyzeRequest):
         raise HTTPException(status_code=500, detail=f"Emotion analysis failed: {e}")
 
 
-# ── Endpoint 3: Mood Trend Forecast ──────────────────────────────────────────
+# ── Endpoint 4: Mood Trend Forecast ──────────────────────────────────────────
 
 @app.post(
     "/ml/mood-forecast",
@@ -203,3 +252,4 @@ def mood_forecast(request: MoodForecastRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

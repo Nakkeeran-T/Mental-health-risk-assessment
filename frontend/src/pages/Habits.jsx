@@ -9,6 +9,7 @@ const Habits = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const fetchHabits = async () => {
     try {
@@ -30,16 +31,24 @@ const Habits = () => {
     e.preventDefault();
     if (!title.trim()) return;
     setError('');
+    setSuccess('');
     setSubmitting(true);
 
     try {
-      await api.post('/habits', { title, description });
+      const res = await api.post('/habits', { title: title.trim(), description: description.trim() });
       setTitle('');
       setDescription('');
-      fetchHabits();
+      setSuccess('✨ Habit added successfully!');
+      setTimeout(() => setSuccess(''), 3000);
+      
+      if (res.data?.data) {
+        setHabits(prev => [res.data.data, ...prev]);
+      } else {
+        fetchHabits();
+      }
     } catch (err) {
       console.error('Failed to create habit:', err);
-      setError('Failed to create new self-care habit.');
+      setError('Failed to create new self-care habit. Make sure backend is running.');
     } finally {
       setSubmitting(false);
     }
@@ -57,11 +66,12 @@ const Habits = () => {
   };
 
   const handleDeleteHabit = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this self-care goal?')) return;
     setError('');
     try {
       await api.delete(`/habits/${id}`);
-      fetchHabits();
+      setHabits(prev => prev.filter(h => h.id !== id));
+      setSuccess('Habit removed.');
+      setTimeout(() => setSuccess(''), 2500);
     } catch (err) {
       console.error('Failed to delete habit:', err);
       setError('Failed to delete habit.');
@@ -91,7 +101,12 @@ const Habits = () => {
           <p className="habits-subtitle">Build healthy routines and track your daily self-care streaks.</p>
         </div>
 
-        {error && <div className="auth-error" style={{ marginBottom: '2rem' }}>{error}</div>}
+        {error && <div className="auth-error" style={{ marginBottom: '1.5rem' }}>{error}</div>}
+        {success && (
+          <div className="auth-info-expired" style={{ marginBottom: '1.5rem', color: '#6ee7b7', borderColor: 'rgba(16,185,129,0.3)', backgroundColor: 'rgba(16,185,129,0.1)' }}>
+            {success}
+          </div>
+        )}
 
         <div className="habits-layout">
           {/* Create Goal Card */}

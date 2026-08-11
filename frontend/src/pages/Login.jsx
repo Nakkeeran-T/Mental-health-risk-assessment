@@ -24,7 +24,8 @@ const Login = () => {
     setError('');
     setSubmitting(true);
 
-    const result = await login(email, password);
+    const cleanEmail = email.trim().toLowerCase();
+    const result = await login(cleanEmail, password);
     setSubmitting(false);
 
     if (result.success) {

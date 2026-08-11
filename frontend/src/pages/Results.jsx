@@ -11,6 +11,8 @@ const Results = () => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState('');
+  const [reportSuccess, setReportSuccess] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -20,7 +22,13 @@ const Results = () => {
       try {
         // Fetch Assessment Details
         const detailRes = await api.get(`/assessments/${id}`);
-        setAssessment(detailRes.data.data);
+        const assessmentData = detailRes.data.data;
+        setAssessment(assessmentData);
+
+        // 🚨 CRITICAL SAFETY: Auto-redirect to crisis page for CRITICAL risk level
+        if (assessmentData?.riskLevel?.toUpperCase() === 'CRITICAL') {
+          setTimeout(() => navigate('/crisis'), 3500);
+        }
 
         // Try to fetch report if it exists
         try {
@@ -28,7 +36,6 @@ const Results = () => {
           setReport(reportRes.data.data);
         } catch (reportErr) {
           // Report might not be generated yet, which is fine
-          console.log('No report generated yet.');
         }
       } catch (err) {
         console.error('Failed to load results:', err);
@@ -43,12 +50,15 @@ const Results = () => {
 
   const handleGenerateReport = async () => {
     setReportLoading(true);
+    setReportError('');
+    setReportSuccess(false);
     try {
       const res = await api.post(`/reports/generate/${id}`);
       setReport(res.data.data);
+      setReportSuccess(true);
     } catch (err) {
       console.error('Failed to generate report:', err);
-      setError('Could not generate report. Please try again.');
+      setReportError('Could not generate report. Please try again.');
     } finally {
       setReportLoading(false);
     }
@@ -93,11 +103,33 @@ const Results = () => {
   return (
     <div className="main-content">
       <div className="results-container">
-        {/* Header Summary */}
+          {/* 🚨 CRITICAL Risk: Auto-redirect banner */}
+          {assessment.riskLevel?.toUpperCase() === 'CRITICAL' && (
+            <div style={{
+              marginBottom: '1.5rem', padding: '1rem 1.25rem', borderRadius: '14px',
+              background: 'rgba(239,68,68,0.12)', border: '2px solid rgba(239,68,68,0.4)',
+              display: 'flex', alignItems: 'center', gap: '1rem'
+            }}>
+              <span style={{ fontSize: '1.8rem' }}>🚨</span>
+              <div>
+                <strong style={{ color: '#f87171', fontSize: '1rem' }}>Immediate Support Needed</strong>
+                <p style={{ color: '#fca5a5', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
+                  Your assessment indicates a <strong>CRITICAL</strong> risk level. You are being redirected to Crisis Support resources in a few seconds.
+                  <button
+                    onClick={() => navigate('/crisis')}
+                    style={{ marginLeft: '0.5rem', background: 'none', border: 'none', color: '#f87171',
+                      cursor: 'pointer', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
+                  >Go now →</button>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Header Summary */}
         <div className="glass-card results-header-card">
           <h2>Assessment Completed</h2>
 
-          {/* Source Tag */}
+          {/* Source & Clinical Standard Badges */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <span style={{
               fontSize: '0.75rem', padding: '0.25rem 0.75rem',
@@ -107,6 +139,14 @@ const Results = () => {
               border: `1px solid ${assessment.source === 'AI_CHAT' ? '#6366f130' : '#10b98130'}`
             }}>
               {assessment.source === 'AI_CHAT' ? '🤖 AI Chat Assessment' : '📋 Manual Assessment'}
+            </span>
+            <span style={{
+              fontSize: '0.75rem', padding: '0.25rem 0.75rem',
+              borderRadius: '999px', fontWeight: 600,
+              background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.25)'
+            }}>
+              🏥 PHQ-9 & GAD-7 Standard
             </span>
           </div>
 
@@ -126,7 +166,7 @@ const Results = () => {
           {/* ML Confidence Score */}
           {assessment.mlRiskConfidence != null && (
             <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>🧠 XGBoost confidence:</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>🧠 XGBoost ensemble confidence:</span>
               <div style={{ position: 'relative', width: 140, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
                 <div style={{
                   width: `${(assessment.mlRiskConfidence * 100).toFixed(0)}%`,
@@ -167,6 +207,18 @@ const Results = () => {
               &ldquo;{assessment.notes}&rdquo;
             </p>
           )}
+
+          {/* Ethical Clinical Disclaimer Banner */}
+          <div style={{
+            marginTop: '1.5rem', padding: '0.85rem 1.25rem', borderRadius: '12px',
+            background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.25)',
+            textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '0.75rem'
+          }}>
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚕️</span>
+            <div style={{ fontSize: '0.78rem', color: '#fef08a', lineHeight: 1.45 }}>
+              <strong>Clinical Screening Notice:</strong> MindEase provides automated risk assessment indicators calculated from PHQ-9 & GAD-7 standardized screening tools. This score is intended for self-monitoring and triage, <u>not a formal medical diagnosis</u>. Please consult a licensed mental health professional for medical advice.
+            </div>
+          </div>
         </div>
 
         {/* Coping Recommendations */}
@@ -204,6 +256,16 @@ const Results = () => {
               </button>
             )}
           </div>
+          {reportError && (
+            <p style={{ color: 'var(--color-critical)', fontSize: '0.82rem', marginTop: '0.5rem' }}>
+              ⚠️ {reportError}
+            </p>
+          )}
+          {reportSuccess && (
+            <p style={{ color: 'var(--color-low)', fontSize: '0.82rem', marginTop: '0.5rem' }}>
+              ✅ Report generated successfully!
+            </p>
+          )}
           {report ? (
             <div>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

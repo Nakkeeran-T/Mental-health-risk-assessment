@@ -115,22 +115,70 @@ public class AssessmentServiceImpl implements AssessmentService {
             Map<QuestionCategory, List<Answer>> groupedAnswers = assessment.getAnswers().stream()
                     .collect(Collectors.groupingBy(a -> a.getQuestion().getCategory()));
 
-            List<Answer> depressionAnswers = groupedAnswers.get(QuestionCategory.DEPRESSION);
-            List<Answer> anxietyAnswers = groupedAnswers.get(QuestionCategory.ANXIETY);
-            List<Answer> stressAnswers = groupedAnswers.get(QuestionCategory.STRESS);
+            List<Answer> depressionAnswers  = groupedAnswers.getOrDefault(QuestionCategory.DEPRESSION, List.of());
+            List<Answer> anxietyAnswers      = groupedAnswers.getOrDefault(QuestionCategory.ANXIETY,    List.of());
+            List<Answer> stressAnswers       = groupedAnswers.getOrDefault(QuestionCategory.STRESS,     List.of());
+            List<Answer> sleepAnswers        = groupedAnswers.getOrDefault(QuestionCategory.SLEEP,      List.of());
+            List<Answer> socialAnswers       = groupedAnswers.getOrDefault(QuestionCategory.SOCIAL,     List.of());
 
-            int depScore = sumScores(depressionAnswers);
-            int anxScore = sumScores(anxietyAnswers);
+            int depScore   = sumScores(depressionAnswers);
+            int anxScore   = sumScores(anxietyAnswers);
             int stressScore = sumScores(stressAnswers);
 
-            int maxStress = maxScores(stressAnswers);
+            int maxStress  = maxScores(stressAnswers);
             int stressNorm = maxStress > 0 ? (int) Math.round((double) stressScore / maxStress * 10) : 5;
+
+            // ── Derive lifestyle scores for ML model ──────────────────────────
+            // Sleep quality: from SLEEP category answers (higher raw score → worse sleep → lower quality)
+            // Invert: model expects 0=bad, 10=good.
+            int sleepQuality;
+            if (!sleepAnswers.isEmpty()) {
+                int maxSleep = maxScores(sleepAnswers);
+                int rawSleep = sumScores(sleepAnswers);
+                // Higher raw score on sleep disturbance questions = worse sleep, so invert
+                sleepQuality = maxSleep > 0 ? 10 - (int) Math.round((double) rawSleep / maxSleep * 10) : 5;
+            } else {
+                // No sleep questions answered — estimate from PHQ-9 Q3 (trouble sleeping)
+                // PHQ-9 Q3 has max_score=3: 0=not at all, 3=nearly every day
+                int phq9SleepScore = depressionAnswers.stream()
+                    .filter(a -> a.getQuestion().getQuestionText().toLowerCase().contains("sleep"))
+                    .mapToInt(Answer::getScore).findFirst().orElse(0);
+                sleepQuality = 10 - (int) Math.round(phq9SleepScore / 3.0 * 10);
+            }
+
+            // Social engagement: from SOCIAL category answers
+            int socialEngagement;
+            if (!socialAnswers.isEmpty()) {
+                int maxSocial = maxScores(socialAnswers);
+                int rawSocial = sumScores(socialAnswers);
+                // Higher raw score = better social engagement
+                socialEngagement = maxSocial > 0 ? (int) Math.round((double) rawSocial / maxSocial * 10) : 5;
+            } else {
+                socialEngagement = 5; // neutral default if no social questions
+            }
+
+            // Appetite: from PHQ-9 Q5 ("Poor appetite or overeating") — higher score = worse appetite
+            int appetiteLevel;
+            int phq9AppetiteScore = depressionAnswers.stream()
+                .filter(a -> a.getQuestion().getQuestionText().toLowerCase().contains("appetite")
+                          || a.getQuestion().getQuestionText().toLowerCase().contains("overeating"))
+                .mapToInt(Answer::getScore).findFirst().orElse(-1);
+            if (phq9AppetiteScore >= 0) {
+                appetiteLevel = 10 - (int) Math.round(phq9AppetiteScore / 3.0 * 10);
+            } else {
+                appetiteLevel = 7; // default neutral if question not found
+            }
+
+            sleepQuality    = Math.max(0, Math.min(10, sleepQuality));
+            socialEngagement = Math.max(0, Math.min(10, socialEngagement));
+            appetiteLevel   = Math.max(0, Math.min(10, appetiteLevel));
+            // ─────────────────────────────────────────────────────────────────
 
             RiskAssessmentEngine.RiskAssessmentResult mlResult = riskAssessmentEngine.predictWithMl(
                     depScore, anxScore, stressNorm,
-                    7, 7, 7);
+                    sleepQuality, socialEngagement, appetiteLevel);
 
-            overallRisk = mlResult.riskLevel();
+            overallRisk  = mlResult.riskLevel();
             mlConfidence = mlResult.mlConfidence();
 
             if (overallRisk == null) {
