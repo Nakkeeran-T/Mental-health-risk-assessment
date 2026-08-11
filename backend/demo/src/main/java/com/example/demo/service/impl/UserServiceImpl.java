@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
+import com.example.demo.enums.Role;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
@@ -47,6 +48,32 @@ public class UserServiceImpl implements UserService {
         }
 
         return UserResponse.from(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUserRole(Long id, Role role) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        user.setRole(role);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateUserStatus(Long id, boolean enabled) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        user.setEnabled(enabled);
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        userRepository.delete(user);
     }
 
     @Override

@@ -8,8 +8,8 @@
 
 /* ── Emergency Banner ── */
 .crisis-emergency-banner {
-  background: linear-gradient(135deg, rgba(255, 23, 68, 0.2), rgba(255, 23, 68, 0.05));
-  border: 1px solid rgba(255, 23, 68, 0.4);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 16px;
   padding: 1.5rem 2rem;
   display: flex;
@@ -24,41 +24,57 @@
 }
 
 .crisis-emergency-banner h2 {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: var(--color-critical);
   margin-bottom: 0.3rem;
+  font-weight: 700;
 }
 
 .crisis-emergency-banner p {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
 }
 
 .crisis-emergency-banner strong {
   color: var(--color-critical);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 /* ── Header ── */
 .crisis-header h1 {
   font-size: var(--text-3xl);
-  background: linear-gradient(135deg, var(--text-primary) 40%, #a78bfa 100%);
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.crisis-header-icon {
+  display: inline-block;
+  margin-right: 0.6rem;
+  font-size: var(--text-3xl);
+  vertical-align: middle;
+  -webkit-text-fill-color: initial !important;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+}
+
+.crisis-header-text {
+  background: linear-gradient(135deg, var(--text-primary) 40%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: var(--space-2);
+  background-clip: text;
 }
 
 .crisis-subtitle {
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.7;
-  max-width: 700px;
+  max-width: 720px;
 }
 
 /* ── Section Title ── */
 .section-title {
-  font-size: 1.2rem;
-  color: #fff;
+  font-size: 1.3rem;
+  color: var(--text-primary);
   margin-bottom: 1.2rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-glass);
@@ -68,37 +84,39 @@
 .hotlines-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
+  gap: 1.25rem;
 }
 
 .hotline-card {
   display: flex;
   gap: 1.2rem;
   align-items: flex-start;
-  padding: 1.5rem;
+  padding: 1.6rem;
   transition: var(--transition-smooth);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
 }
 
 .hotline-card:hover {
-  border-color: rgba(167, 139, 250, 0.4);
+  border-color: var(--accent-secondary);
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(138, 43, 226, 0.15);
+  box-shadow: 0 8px 24px var(--accent-secondary-glow);
 }
 
 .hotline-icon {
-  font-size: 2rem;
+  font-size: 2.2rem;
   flex-shrink: 0;
 }
 
 .hotline-info h3 {
-  font-size: 1rem;
-  color: #fff;
+  font-size: 1.1rem;
+  color: var(--text-primary);
   margin-bottom: 0.3rem;
 }
 
 .hotline-number {
   display: block;
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--accent-secondary);
   margin-bottom: 0.5rem;
@@ -118,14 +136,14 @@
 }
 
 .hotline-info p {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
 
 .hotline-hours {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 500;
 }
@@ -144,10 +162,12 @@
   padding: 1.4rem 1.8rem;
   position: relative;
   transition: var(--transition-smooth);
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
 }
 
 .self-help-card:hover {
-  border-color: rgba(0, 242, 254, 0.2);
+  border-color: var(--accent-secondary);
   transform: translateX(4px);
 }
 
@@ -155,9 +175,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(138, 43, 226, 0.3);
+  background: rgba(138, 43, 226, 0.15);
   border: 1px solid var(--accent-primary);
-  color: #fff;
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 700;
   display: flex;
@@ -172,13 +192,13 @@
 }
 
 .self-help-content h3 {
-  font-size: 1rem;
-  color: #fff;
+  font-size: 1.05rem;
+  color: var(--text-primary);
   margin-bottom: 0.3rem;
 }
 
 .self-help-content p {
-  font-size: 0.87rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -186,14 +206,14 @@
 .self-help-link {
   display: inline-block;
   margin-top: 0.6rem;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent-secondary);
   transition: var(--transition-smooth);
 }
 
 .self-help-link:hover {
-  text-shadow: 0 0 8px var(--accent-secondary-glow);
+  text-decoration: underline;
 }
 
 .self-help-link:focus-visible {
@@ -205,6 +225,7 @@
 /* ── Reassurance Card ── */
 .crisis-reassurance-card {
   background: linear-gradient(135deg, rgba(138, 43, 226, 0.12), rgba(0, 242, 254, 0.05));
+  border: 1px solid var(--border-glass);
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
@@ -217,13 +238,13 @@
 }
 
 .crisis-reassurance-card h3 {
-  font-size: 1.2rem;
-  color: #fff;
+  font-size: 1.25rem;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .crisis-reassurance-card p {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   color: var(--text-secondary);
   line-height: 1.7;
 }

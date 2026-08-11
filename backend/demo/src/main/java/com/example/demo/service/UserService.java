@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.response.UserResponse;
 import com.example.demo.entity.User;
+import com.example.demo.enums.Role;
 
 import java.util.List;
 
@@ -12,6 +13,12 @@ public interface UserService {
     UserResponse getUserByEmail(String email);
 
     UserResponse updateUser(Long id, String firstName, String lastName);
+
+    UserResponse updateUserRole(Long id, Role role);
+
+    UserResponse updateUserStatus(Long id, boolean enabled);
+
+    void deleteUser(Long id);
 
     List<UserResponse> getAllUsers();
 

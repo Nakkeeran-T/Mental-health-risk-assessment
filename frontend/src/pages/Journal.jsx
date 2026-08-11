@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api/api';
 import './Journal.css';
 
 const CATEGORIES = ['Gratitude', 'Anxiety', 'Goals', 'Reflection', 'Stress', 'Progress', 'Other'];
-const MOOD_LABELS = { 1: '😩 Severely Down', 2: '😟 Anxious', 3: '😐 Neutral', 4: '🙂 Good', 5: '😀 Great' };
+const MOOD_EMOJIS = { 1: '😩', 2: '😟', 3: '😐', 4: '🙂', 5: '😀' };
+const MOOD_LABELS = { 1: 'Severely Down', 2: 'Anxious', 3: 'Neutral', 4: 'Good', 5: 'Great' };
 const MOOD_COLORS = { 1: 'var(--color-critical)', 2: 'var(--color-high)', 3: 'var(--color-moderate)', 4: 'var(--color-low)', 5: '#00f2fe' };
 
 const EMOTION_EMOJI = { joy: '😊', optimism: '🌟', sadness: '😔', anger: '😠', neutral: '😐' };
@@ -26,9 +27,10 @@ const Journal = () => {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
 
-  // Read/expand state
+  // Read/filter state
   const [expandedId, setExpandedId] = useState(null);
   const [filterCategory, setFilterCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchEntries = async () => {
     try {
@@ -95,14 +97,20 @@ const Journal = () => {
     }
   };
 
-  const filteredEntries = filterCategory === 'All'
-    ? entries
-    : entries.filter(e => e.category === filterCategory);
+  const filteredEntries = useMemo(() => {
+    return entries.filter(e => {
+      const matchesCategory = filterCategory === 'All' || e.category === filterCategory;
+      const matchesSearch = !searchTerm || 
+        e.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        e.content.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [entries, filterCategory, searchTerm]);
 
   if (loading) {
     return (
       <div className="main-content" style={{ textAlign: 'center', marginTop: '4rem' }}>
-        <span className="loading-spinner-lg">Loading journal...</span>
+        <span className="loading-spinner-lg">Loading your reflections...</span>
       </div>
     );
   }
@@ -114,16 +122,19 @@ const Journal = () => {
         {/* Header */}
         <div className="journal-header">
           <div>
-            <h1>📓 My Reflections Journal</h1>
+            <h1>
+              <span className="journal-header-icon">📓</span>
+              <span className="journal-header-text">My Reflections Journal</span>
+            </h1>
             <p className="journal-subtitle">
-              A private space to express your thoughts, track emotions, and celebrate progress.
+              A private, secure space to express your thoughts, track emotions, and cultivate mindfulness.
             </p>
           </div>
           <button
             className="btn-primary"
             onClick={() => { resetForm(); setShowForm(true); }}
           >
-            + New Entry
+            ➕ Write New Entry
           </button>
         </div>
 
@@ -133,7 +144,7 @@ const Journal = () => {
         {/* Write / Edit Form */}
         {showForm && (
           <div className="glass-card journal-form-card">
-            <h3>{editingEntry ? '✏️ Edit Entry' : '✍️ Write New Entry'}</h3>
+            <h3 style={{ color: 'var(--text-primary)' }}>{editingEntry ? '✏️ Edit Reflection' : '✍️ Write New Reflection'}</h3>
             <form onSubmit={handleSubmit} style={{ marginTop: '1.5rem' }}>
 
               {/* Title */}
@@ -144,7 +155,7 @@ const Journal = () => {
                   className="form-input"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder="Give this entry a title..."
+                  placeholder="Give your reflection a title..."
                   required
                 />
               </div>
@@ -157,6 +168,7 @@ const Journal = () => {
                     className="form-input select-dark"
                     value={category}
                     onChange={e => setCategory(e.target.value)}
+                    style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
                   >
                     <option value="">— Select category —</option>
                     {CATEGORIES.map(c => (
@@ -165,7 +177,7 @@ const Journal = () => {
                   </select>
                 </div>
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Mood Tag (optional)</label>
+                  <label className="form-label">How are you feeling? (Optional)</label>
                   <div className="mood-tag-row">
                     {[1, 2, 3, 4, 5].map(v => (
                       <button
@@ -173,10 +185,9 @@ const Journal = () => {
                         type="button"
                         className={`mood-tag-btn ${moodTag === v ? 'selected' : ''}`}
                         onClick={() => setMoodTag(prev => prev === v ? null : v)}
-                        title={MOOD_LABELS[v]}
+                        title={`${MOOD_EMOJIS[v]} ${MOOD_LABELS[v]}`}
                       >
-                        {Object.keys(MOOD_LABELS)[v - 1].split(' ')[0] === '1' ? '😩'
-                          : v === 2 ? '😟' : v === 3 ? '😐' : v === 4 ? '🙂' : '😀'}
+                        {MOOD_EMOJIS[v]}
                       </button>
                     ))}
                   </div>
@@ -190,16 +201,16 @@ const Journal = () => {
                   className="form-input journal-textarea"
                   value={content}
                   onChange={e => setContent(e.target.value)}
-                  placeholder="Write freely... this is your private space."
+                  placeholder="Write freely... your journal entries are private and secure."
                   required
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button type="submit" className="btn-primary" disabled={submitting} style={{ flex: 1, justifyContent: 'center' }}>
-                  {submitting ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Entry'}
+                  {submitting ? 'Saving...' : editingEntry ? 'Update Entry' : 'Save Reflection'}
                 </button>
-                <button type="button" className="btn-secondary" onClick={resetForm} style={{ flex: 1 }}>
+                <button type="button" className="btn-secondary" onClick={resetForm} style={{ flex: 1, justifyContent: 'center' }}>
                   Cancel
                 </button>
               </div>
@@ -207,18 +218,28 @@ const Journal = () => {
           </div>
         )}
 
-        {/* Filter Bar */}
+        {/* Filter Bar & Search */}
         {entries.length > 0 && (
-          <div className="journal-filter-bar">
-            {['All', ...CATEGORIES].map(cat => (
-              <button
-                key={cat}
-                className={`filter-chip ${filterCategory === cat ? 'active' : ''}`}
-                onClick={() => setFilterCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="journal-controls-row">
+            <div className="journal-filter-bar">
+              {['All', ...CATEGORIES].map(cat => (
+                <button
+                  key={cat}
+                  className={`filter-chip ${filterCategory === cat ? 'active' : ''}`}
+                  onClick={() => setFilterCategory(cat)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="text"
+              className="journal-search-input"
+              placeholder="🔍 Search entries..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
           </div>
         )}
 
@@ -226,8 +247,12 @@ const Journal = () => {
         {filteredEntries.length === 0 ? (
           <div className="glass-card empty-state">
             <div className="empty-icon">📓</div>
-            <h3>No Entries Yet</h3>
-            <p>Start writing your first reflection. It's private, safe, and just for you.</p>
+            <h3>No Journal Entries Found</h3>
+            <p>
+              {entries.length === 0
+                ? "Start your mindfulness journey by creating your first reflection."
+                : "No entries match your search or selected category filter."}
+            </p>
           </div>
         ) : (
           <div className="journal-entries-grid">
@@ -239,15 +264,15 @@ const Journal = () => {
                       <span className="category-chip">{entry.category}</span>
                     )}
                     {entry.moodTag && (
-                      <span className="mood-tag-display" style={{ color: MOOD_COLORS[entry.moodTag] }}>
-                        {entry.moodTag === 1 ? '😩' : entry.moodTag === 2 ? '😟' : entry.moodTag === 3 ? '😐' : entry.moodTag === 4 ? '🙂' : '😀'}
+                      <span className="mood-tag-display" title={MOOD_LABELS[entry.moodTag]} style={{ color: MOOD_COLORS[entry.moodTag] }}>
+                        {MOOD_EMOJIS[entry.moodTag]}
                       </span>
                     )}
                     {/* NLP-detected emotion tag */}
                     {entry.detectedEmotion && (
-                      <span title={`NLP detected: ${entry.detectedEmotion}${entry.emotionConfidence ? ` (${(entry.emotionConfidence*100).toFixed(0)}%)` : ''}`}
+                      <span title={`AI Emotion Analysis: ${entry.detectedEmotion}${entry.emotionConfidence ? ` (${(entry.emotionConfidence*100).toFixed(0)}% confidence)` : ''}`}
                         style={{
-                          fontSize: '0.72rem', padding: '0.15rem 0.55rem', borderRadius: 999,
+                          fontSize: '0.72rem', padding: '0.2rem 0.6rem', borderRadius: 999,
                           fontWeight: 600, letterSpacing: '0.03em',
                           background: `${getEmotionColor(entry.detectedEmotion)}18`,
                           color: getEmotionColor(entry.detectedEmotion),
@@ -274,7 +299,7 @@ const Journal = () => {
                     className="read-more-btn"
                     onClick={() => setExpandedId(prev => prev === entry.id ? null : entry.id)}
                   >
-                    {expandedId === entry.id ? 'Show less ↑' : 'Read more ↓'}
+                    {expandedId === entry.id ? 'Show less ↑' : 'Read full reflection ↓'}
                   </button>
                 )}
 
@@ -283,7 +308,7 @@ const Journal = () => {
                     ✏️ Edit
                   </button>
                   <button className="btn-delete" onClick={() => handleDelete(entry.id)} title="Delete entry">
-                    🗑️
+                    🗑️ Delete
                   </button>
                 </div>
               </div>

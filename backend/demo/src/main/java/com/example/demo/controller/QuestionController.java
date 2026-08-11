@@ -50,6 +50,15 @@ public class QuestionController {
     }
 
     /**
+     * GET /api/questions/all (ADMIN view - active & inactive)
+     */
+    @GetMapping("/all")
+    @Operation(summary = "Get all questions including inactive (Admin view)")
+    public ResponseEntity<ApiResponse<List<QuestionResponse>>> getAllQuestions() {
+        return ResponseEntity.ok(ApiResponse.success(questionService.getAllQuestions()));
+    }
+
+    /**
      * GET /api/questions/personalized
      */
     @GetMapping("/personalized")
@@ -91,6 +100,19 @@ public class QuestionController {
     ) {
         QuestionResponse response = questionService.updateQuestion(id, request);
         return ResponseEntity.ok(ApiResponse.success("Question updated", response));
+    }
+
+    /**
+     * PATCH /api/questions/{id}/status (ADMIN only)
+     */
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Toggle question active status (Admin only)")
+    public ResponseEntity<ApiResponse<QuestionResponse>> toggleQuestionStatus(
+            @PathVariable Long id,
+            @RequestParam boolean active
+    ) {
+        QuestionResponse response = questionService.toggleQuestionStatus(id, active);
+        return ResponseEntity.ok(ApiResponse.success("Question status updated", response));
     }
 
     /**

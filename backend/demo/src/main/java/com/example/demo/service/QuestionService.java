@@ -20,5 +20,7 @@ public interface QuestionService {
 
     QuestionResponse updateQuestion(Long id, QuestionRequest request);
 
+    QuestionResponse toggleQuestionStatus(Long id, boolean active);
+
     void deleteQuestion(Long id);
 }

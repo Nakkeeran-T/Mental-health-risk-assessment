@@ -51,16 +51,19 @@ const Crisis = () => {
           <div className="crisis-emergency-icon">🚨</div>
           <div>
             <h2>If you are in immediate danger</h2>
-            <p>Please call <strong>112</strong> (Emergency) or go to your nearest hospital emergency department immediately.</p>
+            <p>Please call <strong>112</strong> (Emergency Services) or go to your nearest hospital emergency department immediately.</p>
           </div>
         </div>
 
         {/* Header */}
         <div className="crisis-header">
-          <h1>💙 Crisis Support & Resources</h1>
+          <h1>
+            <span className="crisis-header-icon">💙</span>
+            <span className="crisis-header-text">Crisis Support & Resources</span>
+          </h1>
           <p className="crisis-subtitle">
             You are not alone. Reaching out is a sign of strength. Below are trusted mental health
-            helplines and self-help techniques to help you through a difficult moment.
+            helplines and self-help techniques to support you through difficult moments.
           </p>
         </div>
 
@@ -110,7 +113,7 @@ const Crisis = () => {
           <div>
             <h3>Remember</h3>
             <p>
-              Mental health struggles are real medical conditions, not weaknesses. What you are
+              Mental health struggles are real medical conditions, not personal weaknesses. What you are
               feeling right now is temporary. Millions of people have walked through dark moments
               and found their way back. You deserve support, care, and healing.
             </p>

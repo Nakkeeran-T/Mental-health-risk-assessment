@@ -78,6 +78,15 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
+    public QuestionResponse toggleQuestionStatus(Long id, boolean active) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Question", "id", id));
+        question.setActive(active);
+        return QuestionResponse.from(questionRepository.save(question));
+    }
+
+    @Override
+    @Transactional
     public void deleteQuestion(Long id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Question", "id", id));

@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.response.ApiResponse;
 import com.example.demo.dto.response.AssessmentResponse;
 import com.example.demo.dto.response.UserResponse;
+import com.example.demo.enums.Role;
 import com.example.demo.service.AssessmentService;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,42 @@ public class AdminController {
     @Operation(summary = "Get user by ID (Admin only)")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id)));
+    }
+
+    /**
+     * PUT /api/admin/users/{id}/role
+     */
+    @PutMapping("/users/{id}/role")
+    @Operation(summary = "Update user role (Admin only)")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserRole(
+            @PathVariable Long id,
+            @RequestParam Role role
+    ) {
+        UserResponse response = userService.updateUserRole(id, role);
+        return ResponseEntity.ok(ApiResponse.success("User role updated successfully", response));
+    }
+
+    /**
+     * PUT /api/admin/users/{id}/status
+     */
+    @PutMapping("/users/{id}/status")
+    @Operation(summary = "Toggle user enabled status (Admin only)")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserStatus(
+            @PathVariable Long id,
+            @RequestParam boolean enabled
+    ) {
+        UserResponse response = userService.updateUserStatus(id, enabled);
+        return ResponseEntity.ok(ApiResponse.success("User status updated successfully", response));
+    }
+
+    /**
+     * DELETE /api/admin/users/{id}
+     */
+    @DeleteMapping("/users/{id}")
+    @Operation(summary = "Delete user account (Admin only)")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
     }
 
     /**
