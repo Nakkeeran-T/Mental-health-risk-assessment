@@ -77,7 +77,7 @@ public class QuestionPersonalizationServiceImpl implements QuestionPersonalizati
         }
 
         if (user.getDateOfBirth() == null) {
-            throw new BadRequestException("Date of birth is required to personalize assessment questions");
+            return AgeGroup.ADULT;
         }
 
         int age = AgeCalculator.calculateAge(user.getDateOfBirth());

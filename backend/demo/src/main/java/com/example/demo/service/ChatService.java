@@ -114,7 +114,7 @@ public class ChatService {
 
         AiCompletionResponse aiResponse = groqAiService.generateChatCompletion(
                 request.getMessage(), recentHistory, buildSystemPrompt(), turnsCompleted);
-
+                
         if (aiResponse != null && aiResponse.getBotMessage() != null) {
             botReply = aiResponse.getBotMessage();
             signals = aiResponse.getSignals();
@@ -451,7 +451,7 @@ public class ChatService {
         if (lower.matches(
                 ".*\\b(sad|anxious|stress|stressed|depressed|worried|tired|exhausted|overwhelmed|lonely)\\b.*")) {
             return "Thank you for sharing how you're feeling. Dealing with that can be really heavy and challenging. I'm here to support you — what do you think is contributing most to how you're feeling right now?";
-        }
+        }   
 
         return "I'm listening closely. Thank you for opening up — please tell me more about what's on your mind or how I can best support you right now.";
     }

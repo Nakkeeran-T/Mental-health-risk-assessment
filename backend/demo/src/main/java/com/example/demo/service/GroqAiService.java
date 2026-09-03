@@ -33,7 +33,7 @@ public class GroqAiService {
     private String groqApiKey;
 
     private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL_NAME = "llama-3.1-8b-instant";
+    private static final String MODEL_NAME = "groq/compound-mini";
     private static final int MAX_RETRIES = 3;
     private static final long RETRY_DELAY_MS = 2000; // 2 seconds
 
@@ -77,6 +77,7 @@ public class GroqAiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
+        headers.set(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         int attempt = 0;
@@ -153,8 +154,12 @@ public class GroqAiService {
                 if (message != null) {
                     String content = (String) message.get("content");
                     if (content != null && !content.isBlank()) {
-                        // The content should be a JSON string as requested by response_format
-                        return objectMapper.readValue(content, AiCompletionResponse.class);
+                        // Strip any markdown code fences (e.g. ```json ... ```)
+                        String cleanedContent = content
+                                .replaceAll("(?s)^```(?:json)?\\s*", "")
+                                .replaceAll("(?s)\\s*```$", "")
+                                .trim();
+                        return objectMapper.readValue(cleanedContent, AiCompletionResponse.class);
                     }
                 }
             }

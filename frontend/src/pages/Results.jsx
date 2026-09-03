@@ -80,7 +80,7 @@ const Results = () => {
   };
 
   const getEmotionColor = (emotion) => {
-    const map = { joy: '#00f2fe', optimism: '#f9d71c', sadness: '#a78bfa', anger: '#f87171', neutral: 'var(--text-secondary)' };
+    const map = { joy: '#0284c7', optimism: '#b45309', sadness: '#6d28d9', anger: '#dc2626', neutral: 'var(--text-secondary)' };
     return map[emotion?.toLowerCase()] || 'var(--text-secondary)';
   };
 
@@ -112,12 +112,12 @@ const Results = () => {
             }}>
               <span style={{ fontSize: '1.8rem' }}>🚨</span>
               <div>
-                <strong style={{ color: '#f87171', fontSize: '1rem' }}>Immediate Support Needed</strong>
-                <p style={{ color: '#fca5a5', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
+                <strong style={{ color: '#991b1b', fontSize: '1rem' }}>Immediate Support Needed</strong>
+                <p style={{ color: '#7f1d1d', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>
                   Your assessment indicates a <strong>CRITICAL</strong> risk level. You are being redirected to Crisis Support resources in a few seconds.
                   <button
                     onClick={() => navigate('/crisis')}
-                    style={{ marginLeft: '0.5rem', background: 'none', border: 'none', color: '#f87171',
+                    style={{ marginLeft: '0.5rem', background: 'none', border: 'none', color: '#b91c1c',
                       cursor: 'pointer', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
                   >Go now →</button>
                 </p>
@@ -134,30 +134,30 @@ const Results = () => {
             <span style={{
               fontSize: '0.75rem', padding: '0.25rem 0.75rem',
               borderRadius: '999px', fontWeight: 600, letterSpacing: '0.05em',
-              background: assessment.source === 'AI_CHAT' ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)',
-              color: assessment.source === 'AI_CHAT' ? '#a5b4fc' : '#6ee7b7',
-              border: `1px solid ${assessment.source === 'AI_CHAT' ? '#6366f130' : '#10b98130'}`
+              background: assessment.source === 'AI_CHAT' ? 'rgba(99,102,241,0.12)' : 'rgba(16,185,129,0.12)',
+              color: assessment.source === 'AI_CHAT' ? '#4338ca' : '#047857',
+              border: `1px solid ${assessment.source === 'AI_CHAT' ? '#6366f140' : '#10b98140'}`
             }}>
               {assessment.source === 'AI_CHAT' ? '🤖 AI Chat Assessment' : '📋 Manual Assessment'}
             </span>
             <span style={{
               fontSize: '0.75rem', padding: '0.25rem 0.75rem',
               borderRadius: '999px', fontWeight: 600,
-              background: 'rgba(59, 130, 246, 0.12)', color: '#60a5fa',
-              border: '1px solid rgba(59, 130, 246, 0.25)'
+              background: 'rgba(59, 130, 246, 0.12)', color: '#1d4ed8',
+              border: '1px solid rgba(59, 130, 246, 0.3)'
             }}>
               🏥 PHQ-9 & GAD-7 Standard
             </span>
           </div>
 
-          <div className="results-score-box" style={{ color: getRiskColor(assessment.riskLevel), border: `2px solid ${getRiskColor(assessment.riskLevel)}` }}>
+          <div className="results-score-box" style={{ color: getRiskColor(assessment.riskLevel), border: `3px solid ${getRiskColor(assessment.riskLevel)}` }}>
             {assessment.totalScore}
           </div>
           <span className="risk-badge" style={{
             fontSize: '1.1rem', padding: '0.6rem 1.5rem',
             color: getRiskColor(assessment.riskLevel),
             backgroundColor: `${getRiskColor(assessment.riskLevel)}15`,
-            borderColor: `${getRiskColor(assessment.riskLevel)}30`,
+            borderColor: `${getRiskColor(assessment.riskLevel)}40`,
             borderStyle: 'solid', borderWidth: '1px'
           }}>
             {assessment.riskLevel} Risk
@@ -166,21 +166,21 @@ const Results = () => {
           {/* ML Confidence Score */}
           {assessment.mlRiskConfidence != null && (
             <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>🧠 XGBoost ensemble confidence:</span>
-              <div style={{ position: 'relative', width: 140, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 999 }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>🧠 XGBoost ensemble confidence:</span>
+              <div style={{ position: 'relative', width: 140, height: 10, background: 'rgba(0,0,0,0.08)', borderRadius: 999 }}>
                 <div style={{
                   width: `${(assessment.mlRiskConfidence * 100).toFixed(0)}%`,
                   height: '100%', borderRadius: 999,
                   background: `linear-gradient(90deg, ${getRiskColor(assessment.riskLevel)}, ${getRiskColor(assessment.riskLevel)}aa)`
                 }} />
               </div>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: getRiskColor(assessment.riskLevel) }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: getRiskColor(assessment.riskLevel) }}>
                 {(assessment.mlRiskConfidence * 100).toFixed(1)}%
               </span>
             </div>
           )}
           {assessment.mlRiskConfidence == null && (
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               ⚡ Rule-based scoring (ML service offline)
             </p>
           )}
@@ -190,9 +190,9 @@ const Results = () => {
             <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center' }}>
               <span style={{
                 padding: '0.35rem 1rem', borderRadius: 999, fontSize: '0.85rem', fontWeight: 600,
-                background: `${getEmotionColor(assessment.mlEmotion)}15`,
+                background: `${getEmotionColor(assessment.mlEmotion)}18`,
                 color: getEmotionColor(assessment.mlEmotion),
-                border: `1px solid ${getEmotionColor(assessment.mlEmotion)}30`
+                border: `1px solid ${getEmotionColor(assessment.mlEmotion)}40`
               }}>
                 {getEmotionEmoji(assessment.mlEmotion)} Detected emotion: {assessment.mlEmotion}
               </span>
@@ -200,7 +200,7 @@ const Results = () => {
           )}
 
           <p className="results-meta">
-            Taken on {new Date(assessment.completedAt).toLocaleString()} | Status: {assessment.status}
+            Taken on {new Date(assessment.completedAt).toLocaleString()} | Status: <strong>{assessment.status}</strong>
           </p>
           {assessment.notes && (
             <p style={{ marginTop: '1.5rem', fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
@@ -210,13 +210,13 @@ const Results = () => {
 
           {/* Ethical Clinical Disclaimer Banner */}
           <div style={{
-            marginTop: '1.5rem', padding: '0.85rem 1.25rem', borderRadius: '12px',
-            background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.25)',
+            marginTop: '1.5rem', padding: '0.9rem 1.25rem', borderRadius: '12px',
+            background: 'rgba(217, 119, 6, 0.1)', border: '1px solid rgba(217, 119, 6, 0.3)',
             textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '0.75rem'
           }}>
-            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⚕️</span>
-            <div style={{ fontSize: '0.78rem', color: '#fef08a', lineHeight: 1.45 }}>
-              <strong>Clinical Screening Notice:</strong> MindEase provides automated risk assessment indicators calculated from PHQ-9 & GAD-7 standardized screening tools. This score is intended for self-monitoring and triage, <u>not a formal medical diagnosis</u>. Please consult a licensed mental health professional for medical advice.
+            <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>⚕️</span>
+            <div style={{ fontSize: '0.82rem', color: '#92400e', lineHeight: 1.5, fontWeight: 500 }}>
+              <strong style={{ color: '#78350f' }}>Clinical Screening Notice:</strong> MindEase provides automated risk assessment indicators calculated from PHQ-9 & GAD-7 standardized screening tools. This score is intended for self-monitoring and triage, <u>not a formal medical diagnosis</u>. Please consult a licensed mental health professional for medical advice.
             </div>
           </div>
         </div>

@@ -388,6 +388,19 @@ const Admin = () => {
     }));
   }, [timeframeFilteredAssessments]);
 
+  // Stacked risk-level area timeline data
+  const stackedRiskTimelineData = useMemo(() => {
+    const map = {};
+    timeframeFilteredAssessments.forEach(a => {
+      const dateStr = new Date(a.completedAt || a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!map[dateStr]) map[dateStr] = { date: dateStr, LOW: 0, MODERATE: 0, HIGH: 0, CRITICAL: 0 };
+      if (a.riskLevel && map[dateStr][a.riskLevel] !== undefined) {
+        map[dateStr][a.riskLevel] += 1;
+      }
+    });
+    return Object.values(map);
+  }, [timeframeFilteredAssessments]);
+
   // Demographic Risk Grouping by Age Group
   const demographicRiskData = useMemo(() => {
     const groups = {
@@ -748,9 +761,44 @@ const Admin = () => {
                       </div>
                     </div>
 
+                    {/* NEW: Stacked Risk Area Chart — Population Risk Trends Over Time */}
+                    {stackedRiskTimelineData.length > 1 && (
+                      <div className="chart-card" style={{ gridColumn: 'span 2' }}>
+                        <h4 style={{ color: 'var(--text-primary)' }}>Population Risk Level Trends Over Time</h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', marginBottom: '0.75rem' }}>
+                          Daily case volumes broken down by risk level — stacked areas show how the at-risk population is shifting.
+                        </p>
+                        <div style={{ width: '100%', height: 320 }}>
+                          <ResponsiveContainer>
+                            <AreaChart data={stackedRiskTimelineData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
+                              <defs>
+                                <linearGradient id="areaLow"      x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-low)"      stopOpacity={0.7}/><stop offset="95%" stopColor="var(--color-low)"      stopOpacity={0.1}/></linearGradient>
+                                <linearGradient id="areaMod"      x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-moderate)"  stopOpacity={0.7}/><stop offset="95%" stopColor="var(--color-moderate)"  stopOpacity={0.1}/></linearGradient>
+                                <linearGradient id="areaHigh"     x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-high)"     stopOpacity={0.7}/><stop offset="95%" stopColor="var(--color-high)"     stopOpacity={0.1}/></linearGradient>
+                                <linearGradient id="areaCritical" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--color-critical)" stopOpacity={0.7}/><stop offset="95%" stopColor="var(--color-critical)" stopOpacity={0.1}/></linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(150,150,150,0.15)" />
+                              <XAxis dataKey="date" stroke="var(--text-secondary)" style={{ fontSize: '0.8rem' }} />
+                              <YAxis stroke="var(--text-secondary)" allowDecimals={false} style={{ fontSize: '0.8rem' }} />
+                              <Tooltip
+                                contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-glass)', borderRadius: '8px' }}
+                                itemStyle={{ color: 'var(--text-primary)' }}
+                              />
+                              <Legend />
+                              <Area type="monotone" dataKey="LOW"      name="Low Risk"      stackId="1" stroke="var(--color-low)"      fill="url(#areaLow)"      strokeWidth={1.5} />
+                              <Area type="monotone" dataKey="MODERATE" name="Moderate Risk" stackId="1" stroke="var(--color-moderate)"  fill="url(#areaMod)"      strokeWidth={1.5} />
+                              <Area type="monotone" dataKey="HIGH"     name="High Risk"     stackId="1" stroke="var(--color-high)"     fill="url(#areaHigh)"     strokeWidth={1.5} />
+                              <Area type="monotone" dataKey="CRITICAL" name="Critical Risk" stackId="1" stroke="var(--color-critical)" fill="url(#areaCritical)" strokeWidth={1.5} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )}
+
 
               {/* --- USER MANAGEMENT TAB (WITH SEARCH, FILTER & PAGINATION) --- */}
               {activeTab === 'users' && (

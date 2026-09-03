@@ -126,7 +126,7 @@ public class AssessmentServiceImpl implements AssessmentService {
             int stressScore = sumScores(stressAnswers);
 
             int maxStress  = maxScores(stressAnswers);
-            int stressNorm = maxStress > 0 ? (int) Math.round((double) stressScore / maxStress * 10) : 5;
+            int stressNorm = maxStress > 0 ? (int) Math.round((double) stressScore / maxStress * 10) : 0;
 
             // ── Derive lifestyle scores for ML model ──────────────────────────
             // Sleep quality: from SLEEP category answers (higher raw score → worse sleep → lower quality)

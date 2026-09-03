@@ -34,6 +34,25 @@ def generate_samples(n, dep_range, anx_range, stress_range,
     }
 
 
+def compute_risk_level(d, a, s, sleep, social, appetite) -> int:
+    """
+    Calculate composite weighted clinical + lifestyle risk level label (0-3).
+    Note: 'd' here is depression_core (0-21, excluding sleep/appetite items) to avoid double-counting.
+    """
+    clinical_score = (d / 21) * 0.40 + (a / 21) * 0.35 + (s / 10) * 0.25
+    lifestyle_penalty = ((10 - sleep) + (10 - social) + (10 - appetite)) / 30 * 0.15
+    composite = clinical_score + lifestyle_penalty
+
+    if composite >= 0.70:
+        return 3  # CRITICAL
+    elif composite >= 0.45:
+        return 2  # HIGH
+    elif composite >= 0.20:
+        return 1  # MODERATE
+    else:
+        return 0  # LOW
+
+
 def add_engineered_features(df: pd.DataFrame) -> pd.DataFrame:
     """Add domain-specific engineered composite risk signals."""
     df_copy = df.copy()
@@ -47,12 +66,12 @@ def build_synthetic_dataset():
     """
     Build a balanced synthetic dataset grounded in clinical PHQ-9 / GAD-7 cutoffs.
     """
-    low      = generate_samples(900, (0,4),   (0,4),   (0,3),  (7,10), (7,10), (7,10), 0)
-    moderate = generate_samples(700, (5,14),  (5,9),   (4,6),  (5,7),  (5,7),  (5,7),  1)
-    high     = generate_samples(500, (10,19), (10,14), (7,8),  (3,5),  (3,5),  (3,5),  2)
-    critical = generate_samples(300, (20,27), (15,21), (9,10), (0,3),  (0,3),  (0,3),  3)
+    low      = generate_samples(2500, (0,4),   (0,4),   (0,3),  (7,10), (7,10), (7,10), 0)
+    moderate = generate_samples(2500, (5,9),   (5,9),   (4,6),  (5,8),  (5,8),  (5,8),  1)
+    high     = generate_samples(2500, (10,19), (10,14), (7,8),  (3,5),  (3,5),  (3,5),  2)
+    critical = generate_samples(2500, (20,27), (15,21), (9,10), (0,3),  (0,3),  (0,3),  3)
 
-    noisy = generate_samples(200, (5,19), (5,14), (3,8), (3,8), (3,8), (3,8), 1)
+    noisy    = generate_samples(500,  (3,8),   (3,8),   (2,5),  (4,7),  (4,7),  (4,7),  1)
 
     all_data = {}
     for key in low:
@@ -61,6 +80,13 @@ def build_synthetic_dataset():
         ])
 
     df = pd.DataFrame(all_data)
+    df["risk_level"] = [
+        compute_risk_level(d, a, s, sl, soc, app)
+        for d, a, s, sl, soc, app in zip(
+            df["depression"], df["anxiety"], df["stress"],
+            df["sleep_quality"], df["social_engagement"], df["appetite_level"]
+        )
+    ]
     return add_engineered_features(df)
 
 
@@ -74,21 +100,21 @@ def load_and_preprocess_real_dataset(csv_path: str) -> pd.DataFrame:
     df = pd.read_csv(csv_path, low_memory=False)
     df['self_employed'] = df['self_employed'].fillna('No')
 
-    dep_score = (
-        df['Mental_Health_History'].map({'Yes': 10, 'Maybe': 5, 'No': 1}) +
-        df['Changes_Habits'].map({'Yes': 7, 'Maybe': 4, 'No': 0}) +
+    # Core depression score (excluding sleep and appetite items to prevent double-counting)
+    dep_core_score = (
+        df['Mental_Health_History'].map({'Yes': 11, 'Maybe': 6, 'No': 0}) +
         df['Work_Interest'].map({'No': 6, 'Maybe': 3, 'Yes': 0}) +
         df['treatment'].map({'Yes': 4, 'No': 0})
-    ).fillna(0).clip(0, 27).astype(int)
+    ).fillna(0).clip(0, 21).astype(int)
 
     anx_score = (
-        df['Coping_Struggles'].map({'Yes': 9, 'No': 1}) +
-        df['mental_health_interview'].map({'No': 6, 'Maybe': 3, 'Yes': 0}) +
+        df['Coping_Struggles'].map({'Yes': 9, 'No': 0}) +
+        df['mental_health_interview'].map({'No': 0, 'Maybe': 2, 'Yes': 0}) +
         df['family_history'].map({'Yes': 6, 'No': 0})
     ).fillna(0).clip(0, 21).astype(int)
 
     stress_score = (
-        df['Growing_Stress'].map({'Yes': 5, 'Maybe': 3, 'No': 1}) +
+        df['Growing_Stress'].map({'Yes': 5, 'Maybe': 3, 'No': 0}) +
         df['Mood_Swings'].map({'High': 5, 'Medium': 3, 'Low': 0})
     ).fillna(0).clip(0, 10).astype(int)
 
@@ -105,19 +131,16 @@ def load_and_preprocess_real_dataset(csv_path: str) -> pd.DataFrame:
         'No': 9, 'Maybe': 5, 'Yes': 2
     }).fillna(5).astype(int)
 
-    risk_levels = []
-    for d, a, s in zip(dep_score, anx_score, stress_score):
-        if d >= 20 or a >= 15 or s >= 9:
-            risk_levels.append(3)  # CRITICAL
-        elif d >= 10 or a >= 10 or s >= 7:
-            risk_levels.append(2)  # HIGH
-        elif d >= 5 or a >= 5 or s >= 4:
-            risk_levels.append(1)  # MODERATE
-        else:
-            risk_levels.append(0)  # LOW
+    risk_levels = [
+        compute_risk_level(d, a, s, sl, soc, app)
+        for d, a, s, sl, soc, app in zip(
+            dep_core_score, anx_score, stress_score,
+            sleep_score, social_score, appetite_score
+        )
+    ]
 
     base_df = pd.DataFrame({
-        "depression": dep_score,
+        "depression": dep_core_score,
         "anxiety": anx_score,
         "stress": stress_score,
         "sleep_quality": sleep_score,
@@ -129,13 +152,13 @@ def load_and_preprocess_real_dataset(csv_path: str) -> pd.DataFrame:
     return add_engineered_features(base_df)
 
 
-def train_model(dataset_path: Optional[str] = None, use_real_data: bool = True) -> dict:
+def train_model(dataset_path: Optional[str] = None, use_real_data: bool = False) -> dict:
     """
-    Train Calibrated Soft Voting Ensemble (XGBoost + RandomForest) with SMOTE oversampling.
+    Train Calibrated XGBoost Classifier with SMOTE oversampling and native NaN support.
     """
     start_time = time.time()
     print("=" * 60)
-    print("  MindEase - Advanced Calibrated Ensemble Classifier Retraining")
+    print("  MindEase - Advanced Calibrated XGBoost Classifier Retraining")
     print("=" * 60)
 
     target_csv = dataset_path or DEFAULT_DATASET_PATH
@@ -164,7 +187,7 @@ def train_model(dataset_path: Optional[str] = None, use_real_data: bool = True) 
     X_train_res, y_train_res = res[0], res[1]
     print(f"Balanced training size: {len(X_train_res)} samples")
 
-    print("\nTraining Calibrated Voting Ensemble (XGBoost + RandomForest)...")
+    print("\nTraining Calibrated XGBoost Classifier (Native NaN Support Enabled)...")
     xgb = XGBClassifier(
         n_estimators=150,
         max_depth=5,
@@ -176,20 +199,8 @@ def train_model(dataset_path: Optional[str] = None, use_real_data: bool = True) 
         n_jobs=-1
     )
 
-    rf = RandomForestClassifier(
-        n_estimators=50,
-        max_depth=10,
-        random_state=42,
-        n_jobs=-1
-    )
-
-    ensemble = VotingClassifier(
-        estimators=[('xgb', xgb), ('rf', rf)],
-        voting='soft'
-    )
-
     calibrated_model = CalibratedClassifierCV(
-        estimator=ensemble,
+        estimator=xgb,
         method='sigmoid',
         cv=3
     )
