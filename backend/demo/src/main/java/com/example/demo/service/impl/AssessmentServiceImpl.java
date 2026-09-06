@@ -18,6 +18,9 @@ import com.example.demo.service.AssessmentService;
 import com.example.demo.service.RecommendationService;
 import com.example.demo.service.RiskAssessmentEngine;
 import com.example.demo.service.UserService;
+import com.example.demo.entity.WearableBiometric;
+import com.example.demo.repository.WearableBiometricRepository;
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AssessmentServiceImpl implements AssessmentService {
@@ -36,6 +41,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     private final UserService userService;
     private final RecommendationService recommendationService;
     private final RiskAssessmentEngine riskAssessmentEngine;
+    private final WearableBiometricRepository wearableBiometricRepository;
 
     @Override
     @Transactional
@@ -80,6 +86,21 @@ public class AssessmentServiceImpl implements AssessmentService {
                             .build();
                     assessment.getAnswers().add(answer);
                 });
+            }
+
+            // ── Exact Wearable Biometrics Integration (AI_CHAT) ──
+            Optional<WearableBiometric> exactWearableChat = wearableBiometricRepository
+                    .findFirstByUserIdOrderBySyncedAtDesc(user.getId());
+            if (exactWearableChat.isPresent()) {
+                WearableBiometric bio = exactWearableChat.get();
+                if (bio.getSleepQualityScore() != null) {
+                    sleepQ = bio.getSleepQualityScore();
+                }
+                if (bio.getStressScore() != null) {
+                    stressNorm = (int) Math.round((stressNorm * 0.4) + (bio.getStressScore() * 0.6));
+                }
+                log.info("[AssessmentML] AI_CHAT assessment augmented with exact user biometrics | user: {}, sleep: {}/10, stress: {}/10",
+                        user.getEmail(), sleepQ, stressNorm);
             }
 
             RiskAssessmentEngine.RiskAssessmentResult mlResult = riskAssessmentEngine.predictWithMl(
@@ -167,6 +188,21 @@ public class AssessmentServiceImpl implements AssessmentService {
                 appetiteLevel = 10 - (int) Math.round(phq9AppetiteScore / 3.0 * 10);
             } else {
                 appetiteLevel = 7; // default neutral if question not found
+            }
+
+            // ── Exact Wearable Biometrics Integration (MANUAL) ──
+            Optional<WearableBiometric> exactWearable = wearableBiometricRepository
+                    .findFirstByUserIdOrderBySyncedAtDesc(user.getId());
+            if (exactWearable.isPresent()) {
+                WearableBiometric bio = exactWearable.get();
+                if (bio.getSleepQualityScore() != null) {
+                    sleepQuality = bio.getSleepQualityScore();
+                }
+                if (bio.getStressScore() != null) {
+                    stressNorm = (int) Math.round((stressNorm * 0.4) + (bio.getStressScore() * 0.6));
+                }
+                log.info("[AssessmentML] MANUAL questionnaire augmented with exact user biometrics | user: {}, sleepQuality: {}/10, autonomicStress: {}/10",
+                        user.getEmail(), sleepQuality, stressNorm);
             }
 
             sleepQuality    = Math.max(0, Math.min(10, sleepQuality));

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/api';
 import DashboardTour, { STORAGE_KEY as TOUR_KEY } from '../components/DashboardTour';
+import WearableSyncCard from '../components/WearableSyncCard';
 import {
   ResponsiveContainer,
   LineChart,
@@ -388,6 +389,9 @@ const Dashboard = () => {
               </div>
             </div>
           )}
+
+          {/* Wearable Biometrics & Smartwatch Sync */}
+          <WearableSyncCard />
 
           {/* Assessment Progress Chart — only when assessments exist */}
           {history.length > 0 ? (
