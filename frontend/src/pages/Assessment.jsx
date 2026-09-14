@@ -242,9 +242,25 @@ const Assessment = () => {
             <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
               Select Assessment Questionnaire
             </h1>
-            <p style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
               Choose a clinical assessment scale to measure your current risk profile.
             </p>
+            <button
+              className="btn-secondary"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.55rem 1.25rem',
+                fontSize: '0.88rem',
+                borderRadius: 'var(--radius-pill)',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+              onClick={() => navigate('/history')}
+            >
+              <span>📊</span> View Past Assessment History →
+            </button>
           </div>
 
           <div className="selection-grid">

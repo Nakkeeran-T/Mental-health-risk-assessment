@@ -590,3 +590,193 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Upload Health File Tab ───────────────────────────────────────────────── */
+
+.wearable-upload-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.wearable-upload-info-box {
+  background: rgba(14, 165, 233, 0.07);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.wearable-upload-info-title {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--accent-primary);
+  margin: 0 0 0.5rem;
+}
+
+.wearable-upload-brand-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.wearable-brand-chip {
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--accent-primary);
+  white-space: nowrap;
+}
+
+.wearable-upload-info-sub {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Drop zone */
+.wearable-upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 2px dashed rgba(14, 165, 233, 0.35);
+  border-radius: 10px;
+  padding: 1.4rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: rgba(14, 165, 233, 0.04);
+  text-align: center;
+}
+
+.wearable-upload-dropzone:hover {
+  border-color: var(--accent-primary);
+  background: rgba(14, 165, 233, 0.09);
+}
+
+.wearable-upload-icon {
+  font-size: 1.8rem;
+}
+
+.wearable-upload-dropzone-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.wearable-upload-dropzone-sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* Error */
+.wearable-upload-error {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--color-critical, #ef4444);
+}
+
+/* Preview */
+.wearable-upload-preview {
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.wearable-upload-preview-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #22c55e;
+  margin: 0 0 0.65rem;
+}
+
+.wearable-upload-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+}
+
+.wearable-upload-preview-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.wearable-upload-preview-icon {
+  font-size: 1.1rem;
+}
+
+.wearable-upload-preview-label {
+  font-size: 0.67rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.wearable-upload-preview-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Export guide */
+.wearable-export-guide {
+  border: 1px solid var(--border-glass);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wearable-export-guide summary {
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.wearable-export-guide summary::-webkit-details-marker { display: none; }
+.wearable-export-guide summary::before { content: '▶  '; font-size: 0.65rem; }
+.wearable-export-guide[open] summary::before { content: '▼  '; }
+
+.wearable-export-steps {
+  padding: 0.5rem 0.9rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.wearable-export-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.wearable-export-brand strong {
+  font-size: 0.76rem;
+  color: var(--accent-primary);
+}
+
+.wearable-export-brand span {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+

@@ -11,11 +11,14 @@ The HuggingFace model is downloaded on first use (~500 MB).
 If unavailable (no internet / install issue), VADER is used silently.
 """
 
+import logging
 from typing import Dict, Any
 
-_pipeline = None          # HuggingFace pipeline (lazy-loaded)
-_vader_sia = None         # VADER SentimentIntensityAnalyzer (lazy-loaded)
-_transformer_failed = False  # set True if HuggingFace load failed
+logger = logging.getLogger(__name__)
+
+_pipeline = None
+_vader_sia = None
+_transformer_failed = False
 
 HF_MODEL = "cardiffnlp/twitter-roberta-base-emotion"
 
@@ -38,10 +41,10 @@ def _load_hf_pipeline():
             truncation=True,
             max_length=512,
         )
-        print(f"[EmotionAnalyzer] Loaded HuggingFace model: {HF_MODEL}")
+        logger.info("Loaded HuggingFace model: %s", HF_MODEL)
         return _pipeline
     except Exception as e:
-        print(f"[EmotionAnalyzer] HuggingFace model unavailable: {e}. Using VADER fallback.")
+        logger.warning("HuggingFace model unavailable: %s. Using VADER fallback.", e)
         _transformer_failed = True
         return None
 
@@ -60,7 +63,7 @@ def _load_vader():
         _vader_sia = SentimentIntensityAnalyzer()
         return _vader_sia
     except Exception as e:
-        print(f"[EmotionAnalyzer] VADER load failed: {e}")
+        logger.warning("VADER load failed: %s", e)
         return None
 
 
@@ -130,7 +133,7 @@ def analyze_emotion(text: str) -> Dict[str, Any]:
                 "source": "transformers",
             }
         except Exception as e:
-            print(f"[EmotionAnalyzer] Inference error: {e}. Falling back to VADER.")
+            logger.warning("Inference error: %s. Falling back to VADER.", e)
 
     # VADER fallback
     return _vader_analyze(text)

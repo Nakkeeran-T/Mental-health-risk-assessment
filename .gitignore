@@ -1,11 +1,125 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+# ==============================================================================
+# Git Ignore Configuration - Mental Health Risk Assessment Platform
+# Covers: Backend (Spring Boot), Frontend (React/Vite), ML (Python/FastAPI), Mobile (Flutter)
+# ==============================================================================
 
-### STS ###
+### Environment Variables & Credentials (CRITICAL - DO NOT COMMIT) ###
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+!*.env.example
+
+# Secret / Key / Certificate Files
+*.pem
+*.key
+*.pkcs12
+*.p12
+*.pfx
+*.asc
+*.cert
+*.cer
+*.crt
+*.der
+id_rsa*
+id_ed25519*
+secrets.json
+client_secret*.json
+credentials.json
+service-account*.json
+
+### Spring Boot Backend ###
+backend/**/target/
+backend/**/build/
+**/target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+backend/**/application-local.properties
+backend/**/application-secret.properties
+backend/**/application-secrets.properties
+backend/**/application-prod.properties
+backend/**/*.jar
+backend/**/*.war
+!gradle/wrapper/gradle-wrapper.jar
+
+### Frontend (React / Vite / Node) ###
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+frontend/.eslintcache
+frontend/.turbo
+frontend/.parcel-cache
+node_modules/
+
+### Flutter / Mobile Application ###
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub-cache/
+mobile/.pub/
+mobile/build/
+mobile/coverage/
+mobile/android/.gradle/
+mobile/android/captures/
+mobile/android/gradleBuild/
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/android/app/google-services.json
+mobile/android/app/debug/
+mobile/android/app/profile/
+mobile/android/app/release/
+mobile/ios/Flutter/.last_build_id
+mobile/ios/Flutter/Generated.xcconfig
+mobile/ios/Flutter/app.flx
+mobile/ios/Flutter/flutter_assets/
+mobile/ios/Flutter/flutter_export_environment.sh
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/ios/GoogleService-Info.plist
+mobile/ios/**/GeneratedPluginRegistrant.*
+mobile/macos/Flutter/ephemeral/
+mobile/macos/Pods/
+mobile/windows/flutter/ephemeral/
+mobile/linux/flutter/ephemeral/
+*.keystore
+*.jks
+local.properties
+key.properties
+google-services.json
+GoogleService-Info.plist
+
+### Python & ML Models ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+mlmodels/.venv/
+mlmodels/venv/
+
+### IDEs & Editors ###
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse / STS
 .apt_generated
 .classpath
 .factorypath
@@ -14,52 +128,15 @@ build/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
+# VS Code
 .vscode/
 
-### Frontend (Node/Vite/React) ###
-frontend/node_modules/
-frontend/dist/
-frontend/build/
-
-### Backend (Spring Boot compiled output) ###
-**/target/
-
-### Local env files (DO NOT COMMIT) ###
-.env
-.env.*
-
-### Python ###
-__pycache__/
-*.py[cod]
-*$py.class
-*.pkl
-.pytest_cache/
-.venv/
-venv/
-ENV/
-env/
-.coverage
-htmlcov/
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
 
 ### OS & System Files ###
 .DS_Store
@@ -73,12 +150,12 @@ desktop.ini
 *.tmp
 *.bak
 *.swp
+*.swo
 
 ### Logs & Agent Caches ###
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .gemini/
-
-

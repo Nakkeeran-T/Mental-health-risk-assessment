@@ -107,7 +107,6 @@ def predict_risk(depression: int, anxiety: int, stress: int,
             for name, imp in zip(FEATURE_NAMES, importances)
         }
     else:
-        # For CalibratedClassifierCV / VotingClassifier, compute average weights across estimators
         feature_importance = {
             "depression": 0.28, "anxiety": 0.25, "stress": 0.18,
             "isolation_index": 0.12, "occupational_stress": 0.09, "family_clinical_risk": 0.08

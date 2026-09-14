@@ -1,0 +1,92 @@
+/*
+ * MobileBottomNav.css — Mobile bottom navigation bar
+ * Only displayed on viewport width <= 900px
+ */
+
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    z-index: 999;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.06);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-nav-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-nav-label {
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  /* Active state */
+  .mobile-nav-item.active {
+    color: #4f46e5;
+    font-weight: 700;
+  }
+
+  .mobile-nav-item.active .mobile-nav-icon {
+    background: #e0e7ff;
+    color: #4338ca;
+    transform: translateY(-2px);
+  }
+
+  /* Special highlight for history tab if needed */
+  .mobile-nav-item.history-tab.active .mobile-nav-icon {
+    background: #e0f2fe;
+    color: #0284c7;
+  }
+
+  .mobile-nav-item.history-tab.active {
+    color: #0284c7;
+  }
+
+  /* Offset page content so bottom bar doesn't cover anything */
+  .page-content {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

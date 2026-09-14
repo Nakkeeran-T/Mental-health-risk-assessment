@@ -475,13 +475,20 @@ const Results = () => {
         </div>
 
         {/* Navigation back */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.5rem' }}>
           <button
             className="btn-secondary"
             style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
             onClick={() => navigate('/dashboard')}
           >
             Dashboard
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+            onClick={() => navigate('/history')}
+          >
+            📊 View History
           </button>
           <button
             className="btn-primary"

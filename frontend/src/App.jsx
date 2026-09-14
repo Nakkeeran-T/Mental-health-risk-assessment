@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
+import MobileBottomNav from './components/MobileBottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
@@ -55,12 +56,9 @@ const AppShell = () => {
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar navigation ── */}
       <Sidebar />
 
-      {/* ── Main panel ── */}
       <div className="main-panel">
-        {/* Top bar — title + mobile hamburger */}
         {isAuthenticated && (
           <header className="topbar">
             <button
@@ -74,7 +72,6 @@ const AppShell = () => {
           </header>
         )}
 
-        {/* Page content */}
         <main className="page-content">
           <Routes>
             <Route path="/login"    element={<Login />} />
@@ -120,6 +117,9 @@ const AppShell = () => {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>
+
+        {/* ── Mobile bottom navigation bar ── */}
+        <MobileBottomNav />
       </div>
     </div>
   );

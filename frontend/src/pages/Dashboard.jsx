@@ -72,21 +72,15 @@ const Dashboard = () => {
             if (forecastRes.data.data?.predictedScore) {
               setMoodForecast(forecastRes.data.data);
             }
-          } catch (e) {
-            console.warn('Mood forecast unavailable (ML service may be offline):', e);
-          }
+          } catch (_e) { /* ML service offline — mood forecast unavailable */ }
         }
-      } catch (e) {
-        console.warn('Mood history not available:', e);
-      }
+      } catch (_e) { /* mood history unavailable */ }
 
       // Fetch Wellness Score
       try {
         const wellnessRes = await api.get('/wellness/score');
         setWellnessScore(wellnessRes.data.data);
-      } catch (e) {
-        console.warn('Wellness score not available:', e);
-      }
+      } catch (_e) { /* wellness score unavailable */ }
 
       if (historyData.length > 0) {
         const latestId = historyData[0].id;
