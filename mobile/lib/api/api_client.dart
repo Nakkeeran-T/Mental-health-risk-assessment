@@ -24,8 +24,10 @@ class ApiClient {
 
   static String sanitizeUrl(String url) {
     String cleaned = url.trim();
-    // Fix accidental dot before port (e.g. 10.0.2.2.8080 -> 10.0.2.2:8080)
+    // Fix accidental dot or missing colon before port (e.g. 10.0.2.2.8080 or 10.0.2.28080 -> 10.0.2.2:8080)
     cleaned = cleaned.replaceAll('.8080', ':8080');
+    cleaned = cleaned.replaceAllMapped(RegExp(r'(\d+\.\d+\.\d+\.\d+)8080'), (m) => '${m[1]}:8080');
+    cleaned = cleaned.replaceAll('localhost8080', 'localhost:8080');
 
     // If local ip or emulator address is prefixed with https, change to http
     if (cleaned.startsWith('https://10.0.2.2') ||

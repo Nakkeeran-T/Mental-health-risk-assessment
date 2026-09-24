@@ -34,12 +34,16 @@ Future<void> showServerConfigDialog(BuildContext context, {VoidCallback? onUrlUp
               runSpacing: 6,
               children: [
                 ActionChip(
-                  label: const Text('Android Emulator', style: TextStyle(fontSize: 11)),
-                  onPressed: () => urlController.text = 'http://10.0.2.2:8080/api',
+                  label: const Text('USB Phone (Localhost)', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://localhost:8080/api',
                 ),
                 ActionChip(
-                  label: const Text('Localhost / USB Phone', style: TextStyle(fontSize: 11)),
-                  onPressed: () => urlController.text = 'http://localhost:8080/api',
+                  label: const Text('Wi-Fi Network', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://10.238.7.133:8080/api',
+                ),
+                ActionChip(
+                  label: const Text('Android Emulator', style: TextStyle(fontSize: 11)),
+                  onPressed: () => urlController.text = 'http://10.0.2.2:8080/api',
                 ),
               ],
             ),

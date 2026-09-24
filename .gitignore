@@ -61,6 +61,7 @@ mobile/.packages
 mobile/.pub-cache/
 mobile/.pub/
 mobile/build/
+mobile/android/build/
 mobile/coverage/
 mobile/android/.gradle/
 mobile/android/captures/
