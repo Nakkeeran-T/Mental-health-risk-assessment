@@ -458,19 +458,43 @@ const Results = () => {
           </div>
         </div>
 
-        {/* ── BOTTOM ACTION: DOWNLOAD CLINICAL SUMMARY PDF (Screenshot Button) ── */}
+        {/* ── BOTTOM ACTION: DOWNLOAD CLINICAL SUMMARY ── */}
         <div className="clinical-download-box">
           <button
             className="clinical-pdf-btn"
-            onClick={() => {
-              if (!report) {
-                handleGenerateReport();
+            disabled={reportLoading}
+            onClick={async () => {
+              // Generate report if not yet done
+              let reportData = report;
+              if (!reportData) {
+                setReportLoading(true);
+                try {
+                  const res = await api.post(`/reports/generate/${id}`);
+                  reportData = res.data.data;
+                  setReport(reportData);
+                } catch {
+                  setReportError('Could not generate report.');
+                  setReportLoading(false);
+                  return;
+                }
+                setReportLoading(false);
               }
-              window.print();
+              // Trigger download as .txt file
+              const content = reportData?.details || reportData?.summary || 'No report content available.';
+              const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              const dateStr = new Date().toISOString().slice(0, 10);
+              a.download = `MindEase-Report-${id}-${dateStr}.txt`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
             }}
           >
             <span>📄</span>
-            <span>Download clinical summary PDF</span>
+            <span>{reportLoading ? 'Generating report...' : 'Download Clinical Summary'}</span>
           </button>
         </div>
 

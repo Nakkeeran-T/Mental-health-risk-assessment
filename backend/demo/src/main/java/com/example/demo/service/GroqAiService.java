@@ -32,8 +32,10 @@ public class GroqAiService {
     @Value("${groq.api.key:${GROQ_API_KEY:}}")
     private String groqApiKey;
 
+    @Value("${groq.model:openai/gpt-oss-20b}")
+    private String modelName;
+
     private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODEL_NAME = "groq/compound-mini";
     private static final int MAX_RETRIES = 3;
     private static final long RETRY_DELAY_MS = 2000; // 2 seconds
 
@@ -117,7 +119,8 @@ public class GroqAiService {
     private Map<String, Object> buildRequestBody(String currentMessage, List<ChatMessage> dbHistory,
                                                   String systemPrompt) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("model", MODEL_NAME);
+        String effectiveModel = (modelName != null && !modelName.isBlank()) ? modelName.trim() : "openai/gpt-oss-20b";
+        body.put("model", effectiveModel);
 
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemPrompt));
